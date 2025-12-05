@@ -103,7 +103,7 @@ export class ListaContraventionsComponent implements OnInit {
           if (this.sort) {
             this.dataSource.sort = this.sort;
           }
-        });
+        }); 
       },
       error: (error: any) => {
         console.error('Erreur lors du chargement des contraventions:', error);
@@ -120,7 +120,7 @@ export class ListaContraventionsComponent implements OnInit {
           return true;
         }
         case "targa": {
-          return data.targa == filter;
+          return data.targa == filter;  // voici branche stevy1
         }
         case "societaIntestataria": {
           return data.societaIntestataria == filter;
