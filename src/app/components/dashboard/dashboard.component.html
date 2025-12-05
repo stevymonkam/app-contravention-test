@@ -1,0 +1,159 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Contratti 2.0</h1>
+    </div>
+    <div class="header-right">
+      <span class="user-info">
+        <i class="material-icons">account_circle</i>
+        F.Fulgori
+      </span>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <nav class="main-menu">
+        <ul>
+          <li *ngFor="let item of menuItems" [class.active]="activeMenu === item.label">
+            <a href="#" (click)="$event.preventDefault(); toggleMenu(item.label)">
+              {{ item.label }}
+              <i class="material-icons">arrow_drop_down</i>
+            </a>
+            <ul class="submenu" *ngIf="item.subItems && activeMenu === item.label">
+              <li *ngFor="let subItem of item.subItems">
+                <a href="#" (click)="$event.preventDefault()">{{ subItem }}</a>
+              </li>
+            </ul>
+          </li>
+          <!-- Lien vers la gestion des contraventions -->
+          <li>
+            <a routerLink="/contraventions" (click)="activeMenu = 'contraventions'" [class.active]="activeMenu === 'contraventions'">
+              <i class="material-icons">gavel</i>
+              Contraventions
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="alert-box warning">
+        <h3>Attenzione</h3>
+        <p>Sono presenti criticità</p>
+      </div>
+
+      <div class="alert-box info">
+        <h3>Info di servizio</h3>
+        <p>relative a ricerche, stampe, esportazioni</p>
+      </div>
+
+      <div class="sidebar-buttons">
+        <button class="btn btn-primary" (click)="createNewContract()">
+          <i class="material-icons">add</i>
+          Nuova
+        </button>
+        <button class="btn btn-warning">
+          <i class="material-icons">warning</i>
+          Segnalazioni
+        </button>
+        <button class="btn btn-orange">
+          <i class="material-icons">search</i>
+          Interrogazioni
+        </button>
+      </div>
+
+      <div class="help-icon">
+        <i class="material-icons">help_outline</i>
+      </div>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="content">
+      <h2>Lista Contratti</h2>
+      
+      <div class="search-container">
+        <div class="search-row">
+          <div class="search-filter">
+            <div class="filter-dropdown">
+              <select class="form-control">
+                <option value="">Tipo</option>
+                <option value="codice">Codice</option>
+                <option value="fornitore">Fornitore</option>
+                <option value="stato">Stato</option>
+              </select>
+              <i class="material-icons">arrow_drop_down</i>
+            </div>
+            <div class="filter-dropdown">
+              <select class="form-control">
+                <option value="">Valore</option>
+              </select>
+              <i class="material-icons">arrow_drop_down</i>
+            </div>
+          </div>
+          <div class="search-input">
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Teleleasing...."
+              aria-label="Cerca contratto">
+          </div>
+          <button class="btn btn-primary search-button">
+            <i class="material-icons">search</i>
+            Cerca
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="contracts-table">
+          <thead>
+            <tr>
+              <th>Società</th>
+              <th>Cod. Contratto</th>
+              <th>Tipologia</th>
+              <th>Sede</th>
+              <th>Società</th>
+              <th>Owner</th>
+              <th>Fornitore</th>
+              <th>Data scad.</th>
+              <th>Data scad. Preavviso</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let contract of contracts" class="contract-row">
+              <td>{{ contract.societa }}</td>
+              <td>{{ contract.codiceContratto }}</td>
+              <td>{{contract.tipologia}}</td>
+              <td>{{ contract.sede }}</td>
+              <td>{{ contract.societa }}</td>
+              <td class="actions">
+                <button mat-icon-button color="primary" matTooltip="Dettagli">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button color="primary" matTooltip="Modifica">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Elimina">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+              <td>{{ contract.owner }}</td>
+              <td>{{ contract.fornitore }}</td>
+              <td>{{ contract.dataScadenza }}</td>
+              <td>{{ contract.dataScadenzaPreavviso }}</td>
+              <td>
+                <span class="status-badge" [class.expired]="contract.stato === 'Scaduto'" 
+                  [class.active]="contract.stato === 'Attivo'"
+                  [class.expiring]="contract.stato === 'In scadenza'">
+                  {{ contract.stato }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>

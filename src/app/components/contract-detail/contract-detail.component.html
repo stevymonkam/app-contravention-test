@@ -1,0 +1,187 @@
+<div class="contract-detail-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Dettaglio Contratto</h1>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-primary" (click)="toggleEditMode()" *ngIf="!isEditMode">
+        <i class="material-icons">edit</i> Modifica
+      </button>
+      <button class="btn btn-secondary" (click)="isEditMode = false" *ngIf="isEditMode">
+        <i class="material-icons">close</i> Annulla
+      </button>
+      <button class="btn btn-primary" (click)="saveContract()" *ngIf="isEditMode">
+        <i class="material-icons">save</i> Salva
+      </button>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <!-- Sidebar per segnalazioni -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3><i class="material-icons">report_problem</i> Eventuali segnalazioni</h3>
+        <div class="alert-box warning">
+          <i class="material-icons">warning</i>
+          <p>Nessuna segnalazione presente</p>
+        </div>
+        <div class="sidebar-buttons">
+          <button class="btn btn-primary" [disabled]="!isEditMode">
+            <i class="material-icons">save</i> Salva
+          </button>
+          <button class="btn btn-danger" [disabled]="!isEditMode">
+            <i class="material-icons">delete</i> Elimina
+          </button>
+          <button class="btn btn-secondary" (click)="isEditMode = false" *ngIf="isEditMode">
+            <i class="material-icons">close</i> Annulla
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenuto principale -->
+    <main class="content">
+      <!-- Sezione Dati Contratto -->
+      <div class="form-section">
+        <h2>Dati Contratto</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Codice Contratto</label>
+            <input type="text" class="form-control" [(ngModel)]="contract.codice" [disabled]="!isEditMode">
+          </div>
+          <div class="form-group">
+            <label>Tipologia</label>
+            <input type="text" class="form-control" [(ngModel)]="contract.tipologia" [disabled]="!isEditMode">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cliente</label>
+            <input type="text" class="form-control" [(ngModel)]="contract.clienteRagioneSociale" [disabled]="!isEditMode">
+          </div>
+          <div class="form-group">
+            <label>Fornitore</label>
+            <input type="text" class="form-control" [(ngModel)]="contract.fornitoreRagioneSociale" [disabled]="!isEditMode">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data Inizio</label>
+            <input type="date" class="form-control" [(ngModel)]="contract.dataInizio" [disabled]="!isEditMode">
+          </div>
+          <div class="form-group">
+            <label>Data Fine</label>
+            <input type="date" class="form-control" [(ngModel)]="contract.dataFine" [disabled]="!isEditMode">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Oggetto</label>
+            <input type="text" class="form-control" [(ngModel)]="contract.oggetto" [disabled]="!isEditMode">
+          </div>
+          <div class="form-group">
+            <label>Stato</label>
+            <select class="form-control" [(ngModel)]="contract.stato" [disabled]="!isEditMode">
+              <option value="ATTIVO">Attivo</option>
+              <option value="SCADUTO">Scaduto</option>
+              <option value="ANNULLATO">Annullato</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sezione Importi -->
+      <div class="form-section">
+        <h2>Importi</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Importo Totale</label>
+            <div class="input-group">
+              <input type="number" class="form-control" [(ngModel)]="contract.importoTotale" [disabled]="!isEditMode">
+              <span class="input-group-text">{{contract.valuta || '€'}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione Documenti -->
+      <div class="form-section">
+        <h2>Documenti</h2>
+        <div class="document-upload">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo Doc</label>
+              <select class="form-control" [(ngModel)]="newDocument.tipo" [disabled]="!isEditMode">
+                <option value="">Seleziona...</option>
+                <option *ngFor="let tipo of tipiDocumento" [value]="tipo">{{tipo}}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Note</label>
+              <input type="text" class="form-control" [(ngModel)]="newDocument.note" [disabled]="!isEditMode">
+            </div>
+            <div class="form-group file-upload">
+              <label>Upload</label>
+              <div class="file-input-container">
+                <input type="file" (change)="onFileSelected($event)" [disabled]="!isEditMode">
+                <button class="btn btn-browse" [disabled]="!isEditMode">
+                  <i class="material-icons">folder_open</i> Sfoglia
+                </button>
+                <span class="file-name">{{newDocument.file?.name || 'Nessun file selezionato'}}</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" (click)="uploadDocument()" [disabled]="!isEditMode || !newDocument.tipo || !newDocument.file">
+            <i class="material-icons">upload</i> Carica
+          </button>
+        </div>
+
+        <div class="documents-table">
+          <table>
+            <thead>
+              <tr>
+                <th width="50">
+                  <input type="checkbox" (change)="onSelectAllChange($event)" [checked]="documenti.length > 0 && selectedDocuments.length === documenti.length">
+                </th>
+                <th>Tipologia</th>
+                <th>Contratto</th>
+                <th>Note</th>
+                <th>Documenti</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let doc of documenti">
+                <td>
+                  <input type="checkbox" [checked]="selectedDocuments.includes(doc.id)" (change)="toggleDocumentSelection(doc.id)">
+                </td>
+                <td>{{doc.tipo}}</td>
+                <td>{{contract.codice}}</td>
+                <td>{{doc.note}}</td>
+                <td>
+                  <a href="#" (click)="$event.preventDefault(); viewDocument(doc)" class="document-link">
+                    <i class="material-icons">visibility</i> {{doc.nomeFile}}
+                  </a>
+                </td>
+              </tr>
+              <tr *ngIf="documenti.length === 0">
+                <td colspan="5" class="no-documents">Nessun documento caricato</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="document-actions" *ngIf="documenti.length > 0">
+          <button class="btn btn-danger" (click)="deleteSelectedDocuments()" [disabled]="selectedDocuments.length === 0">
+            <i class="material-icons">delete</i> Elimina Documenti
+          </button>
+          <button class="btn btn-secondary" (click)="sendDocumentsByEmail()" [disabled]="selectedDocuments.length === 0">
+            <i class="material-icons">email</i> Invia mail
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

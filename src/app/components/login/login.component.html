@@ -1,0 +1,53 @@
+<div class="login-container">
+  <div class="login-header">
+    <div class="logo">Be SHAPING THE FUTURE</div>
+    <div class="app-title">Contratti v.2.0</div>
+  </div>
+  
+  <div class="login-card">
+    <div class="login-card-header">
+      <h2>Login</h2>
+    </div>
+    
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="username">User:</label>
+        <input 
+          type="text" 
+          id="username" 
+          formControlName="username" 
+          class="form-control"
+          placeholder="Inserisci username">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input 
+          type="password" 
+          id="password" 
+          formControlName="password" 
+          class="form-control"
+          placeholder="Inserisci password">
+      </div>
+      
+      <button type="submit" class="btn-login" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Accedi</span>
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span *ngIf="isLoading" class="ms-2">Accesso in corso...</span>
+      </button>
+      
+      <div class="forgot-password">
+        <a href="#" class="forgot-link">Cambio password</a>
+      </div>
+    </form>
+    
+    <div *ngIf="showError" class="alert alert-danger mt-3" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+    </div>
+  </div>
+  
+  <div class="footer">
+    <span class="help-icon">?</span>
+  </div>
+</div>
