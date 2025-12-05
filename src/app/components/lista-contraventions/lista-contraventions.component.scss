@@ -1,0 +1,410 @@
+// Styles pour le composant lista-contraventions
+
+body {
+  overflow-x: hidden;
+}
+
+#wrapper {
+  display: flex;
+  width: 100%;
+}
+
+#sidebar-wrapper {
+  min-height: 100vh;
+  margin-left: -15rem;
+  -webkit-transition: margin .25s ease-out;
+  -moz-transition: margin .25s ease-out;
+  -o-transition: margin .25s ease-out;
+  transition: margin .25s ease-out;
+}
+
+#sidebar-wrapper .sidebar-heading {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+  width: 15rem;
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+  background-color: #deeaf6;
+  color: black;
+  overflow-x: hidden;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: 0;
+}
+
+@media (min-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: 0;
+  }
+
+  #page-content-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: -15rem;
+  }
+}
+
+.bg-light {
+  background-color: #1f4e78!important;
+}
+
+.nav-link {
+  display: inline;
+}
+
+// Amélioration des boutons de la sidebar
+.btn-lg {
+  font-size: 1.1rem !important;
+  padding: 0.8rem 1rem !important;
+  line-height: 1.5 !important;
+  min-height: 48px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+.btn-primary {
+  &:focus {
+    box-shadow: none !important;
+  }
+}
+
+// Table container
+.table-container {
+  background-color: white;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 0;
+  padding: 20px;
+}
+
+// Table styles
+table {
+  width: 100%;
+  background-color: white;
+}
+
+th.mat-header-cell {
+  background-color: #579ddb !important;
+  border: 1px solid white !important;
+  text-align: center !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 15px 10px !important;
+  font-size: 0.95rem !important;
+}
+
+td.mat-cell {
+  border: 1px solid #e0e0e0 !important;
+  text-align: center !important;
+  padding: 12px 10px !important;
+  font-size: 0.9rem !important;
+  vertical-align: middle !important;
+}
+
+.make-gold {
+  background-color: #d3def2 !important;
+}
+
+tr.mat-row:hover {
+  background-color: #e8f0f8 !important;
+  cursor: pointer;
+}
+
+// Pagination styles
+::ng-deep mat-paginator {
+  background-color: white !important;
+  border-top: 2px solid #579ddb !important;
+  padding: 10px 0 !important;
+}
+
+::ng-deep .mat-paginator-container {
+  justify-content: center !important;
+  padding: 10px 16px !important;
+  min-height: 56px !important;
+  flex-wrap: wrap !important;
+}
+
+::ng-deep .mat-paginator-page-size {
+  align-items: center !important;
+  margin-right: 20px !important;
+  
+  .mat-form-field {
+    margin: 0 8px !important;
+  }
+}
+
+::ng-deep .mat-paginator-range-actions {
+  align-items: center !important;
+  
+  button {
+    &:hover {
+      background-color: #f0f0f0 !important;
+    }
+  }
+}
+
+::ng-deep .mat-paginator-range-label {
+  margin: 0 20px !important;
+  font-size: 0.9rem !important;
+}
+
+::ng-deep .mat-paginator-page-size-label {
+  font-size: 0.9rem !important;
+  margin: 0 8px !important;
+}
+
+// Form field styles
+.mat-form-field {
+  display: block;
+  position: relative;
+  text-align: left;
+  width: 100%;
+}
+
+.dissmiss {
+  padding: 0px 0px 1px 9px;
+}
+
+.col-padding {
+  padding-right: 0px;
+  padding-left: 7px;
+}
+
+.col-paddingextlf {
+  padding-right: 0px;
+  padding-left: 14px;
+}
+
+.col-paddingextrg {
+  padding-right: 5px;
+  padding-left: 14px;
+}
+
+// Container fluid spacing
+.container-fluid {
+  padding: 0 !important;
+}
+
+// Search bar styling
+.search-bar-container {
+  background-color: #1f4e78;
+  margin-bottom: 0;
+  
+  .row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+}
+
+.search-label {
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin: 0;
+  white-space: nowrap;
+  padding-bottom: 8px;
+}
+
+.search-label-small {
+  color: white;
+  font-size: 0.9rem;
+  margin: 0 0 5px 0;
+  display: block;
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.search-select {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  height: 42px;
+  width: 100%;
+  min-width: 180px;
+  line-height: 1.4;
+  
+  &:focus {
+    outline: none;
+    border-color: #9dc4e7;
+    box-shadow: 0 0 0 0.2rem rgba(157, 196, 231, 0.25);
+  }
+}
+
+.search-input {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  height: 25px;
+  width: 100%;
+  min-width: 220px;
+  line-height: 1.4;
+  
+  &:focus {
+    outline: none;
+    border-color: #9dc4e7;
+    box-shadow: 0 0 0 0.2rem rgba(157, 196, 231, 0.25);
+  }
+  
+  &::placeholder {
+    color: #999;
+    font-style: italic;
+  }
+}
+
+.btn-search {
+  background-color: #9dc4e7;
+  color: #1f4e78;
+  border: none;
+  border-radius: 4px;
+  padding: 9px 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  height: 42px;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background-color: #8ab3d1;
+  }
+  
+  &:active {
+    background-color: #7aa2c0;
+  }
+}
+
+.row {
+  margin-bottom: 0;
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+  
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+// Sidebar buttons spacing
+.mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+.mt-3 {
+  margin-top: 1rem !important;
+}
+
+// Menu toggle button
+#menu-toggle {
+  background-color: #1f4e78;
+  border: none;
+  padding: 8px 15px;
+  
+  &:hover {
+    background-color: #163a59;
+  }
+  
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+// Navbar styling
+.navbar {
+  padding: 0.5rem 1rem;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+// Amélioration du style des warning boxes
+.row[style*="background-color: #fbda67"],
+.row[style*="background-color: #00af50"] {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 0 7px !important;
+  
+  p {
+    margin: 5px 0;
+    font-weight: 500;
+    font-size: 0.95rem;
+    
+    a {
+      text-decoration: none;
+      color: white !important;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  img {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+}
+
+// Sidebar styling
+#sidebar-wrapper {
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  
+  .row {
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
+  }
+}
+
+// Responsive adjustments for search bar
+@media (max-width: 1200px) {
+  .search-bar-container {
+    .row {
+      flex-wrap: wrap;
+      
+      .col, .col-auto {
+        margin-bottom: 10px;
+      }
+    }
+  }
+}
+
+
