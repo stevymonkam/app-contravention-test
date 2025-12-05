@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -35,6 +36,7 @@ import { ContrattoService } from './services/contratto.service';
 import { ContraventionService } from './services/contravention.service';
 import { ListacontratiComponent } from './components/listacontrati/listacontrati.component';
 import { HeaderComponent } from './components/header/header.component';
+import { ListaContraventionsComponent } from './components/lista-contraventions/lista-contraventions.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -64,6 +66,12 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     data: { title: 'Gestion des Contraventions' }
   },
+  {
+    path: 'lista-contraventions',
+    component: ListaContraventionsComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Lista Contraventions' }
+  },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
 ];
@@ -76,11 +84,12 @@ const routes: Routes = [
     ContractDetailComponent,
     ContraventionComponent,
     ListacontratiComponent,
-    HeaderComponent
-    
+    HeaderComponent,
+    ListaContraventionsComponent
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     RouterModule.forRoot(routes),
     BrowserAnimationsModule,
     FormsModule,

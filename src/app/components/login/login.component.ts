@@ -83,7 +83,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       console.log('ID utilisateur:', localStorage.getItem("idUser"));
       
       // Redirection
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/lista-contraventions']);
       
     } catch (error: any) {
       console.error('Erreur lors de la connexion:', error);
