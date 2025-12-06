@@ -306,6 +306,7 @@
 }
 
 .btn-cancel,
+.btn-back,
 .btn-print,
 .btn-submit {
   padding: 12px 24px;
@@ -324,6 +325,15 @@
 
 .btn-cancel:hover {
   background-color: #5a6268;
+}
+
+.btn-back {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.btn-back:hover {
+  background-color: #e0a800;
 }
 
 .btn-print {

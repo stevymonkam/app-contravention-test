@@ -29,7 +29,7 @@
   <!-- Main Content -->
   <div class="main-content">
     <div class="form-container">
-      <h2 class="form-title">Data Scadenza:</h2>
+      <h2 class="form-title">{{ isEditMode ? 'Modifica Contravention' : 'Nuova Contravention' }}</h2>
       
       <form [formGroup]="contraventionForm" (ngSubmit)="onSubmit()" class="contravention-form">
         
@@ -365,10 +365,10 @@
               </thead>
               <tbody>
                 <tr *ngFor="let file of uploadedFiles; let i = index">
-                  <td>{{ file.tipo }}</td>
+                  <td>{{ file.tipologia }}</td>
                   <td>{{ file.numeroVerbale || '-' }}</td>
                   <td>{{ file.note || '-' }}</td>
-                  <td>{{ file.nomeFile }}</td>
+                  <td>{{ file.documenti || '-' }}</td>
                   <td>
                     <button 
                       type="button" 
@@ -392,6 +392,13 @@
             Cancella
           </button>
           <button 
+            *ngIf="isEditMode"
+            type="button" 
+            class="btn-back"
+            (click)="backToList()">
+            Torna alla lista
+          </button>
+          <button 
             type="button" 
             class="btn-print"
             (click)="onPrint()">
@@ -401,8 +408,8 @@
             type="submit" 
             class="btn-submit"
             [disabled]="isLoading">
-            <span *ngIf="isLoading">Invio in corso...</span>
-            <span *ngIf="!isLoading">Invia</span>
+            <span *ngIf="isLoading">{{ isEditMode ? 'Aggiornamento...' : 'Invio in corso...' }}</span>
+            <span *ngIf="!isLoading">{{ isEditMode ? 'Modifica' : 'Invia' }}</span>
           </button>
         </div>
       </form>

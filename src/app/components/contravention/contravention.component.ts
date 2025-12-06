@@ -1,6 +1,7 @@
 // contravention.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ContraventionService } from '../../services/contravention.service';
 import { Contravention, AllegatoContravention } from '../../models/contratto.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -17,16 +18,17 @@ interface FileMetadata {
   templateUrl: './contravention.component.html',
   styleUrls: ['./contravention.component.css']
 })
-
-
-
 export class ContraventionComponent implements OnInit {
   contraventionForm!: FormGroup;
   uploadedFiles: AllegatoContravention[] = [];
+  uploadedFiles2: any[] = [];
+
   selectedFiles: File[] = [];
   fileUploadForm!: FormGroup;
   isLoading = false;
   uploadProgress = 0;
+  contraventionId: number | null = null;
+  isEditMode = false;
   
 
   // Options pour les dropdowns
@@ -53,13 +55,79 @@ export class ContraventionComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private contraventionService: ContraventionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.initForms();
   }
 
   ngOnInit(): void {
-    // Initialisation si nécessaire
+    console.log('ngOnInit appelé');
+    // Vérifier si on est en mode édition
+    this.route.params.subscribe(params => {
+      console.log('Params reçus:', params);
+      if (params['id']) {
+        this.contraventionId = +params['id'];
+        this.isEditMode = true;
+        console.log('Mode édition activé, ID:', this.contraventionId);
+        this.loadContraventionData(this.contraventionId);
+      } else {
+        console.log('Mode création - pas d\'ID');
+      }
+    });
+  }
+
+  loadContraventionData(id: number): void {
+    this.isLoading = true;
+    this.contraventionService.getContraventionWithFiles(id).subscribe({
+      next: (data: any) => {
+        console.log('Contravention chargée dedans stevy1:', data, data.files, data.files[0]);
+        this.contraventionForm.patchValue({
+          targa: data.contravention.targa,
+          societaIntestataria: data.contravention.societaIntestataria,
+          nominativoGuidatore: data.contravention.nominativoGuidatore,
+          mailGuidatore: data.contravention.mailGuidatore,
+          statoVerbale: data.contravention.statoVerbale,
+          dataVerbale: data.contravention.dataVerbale,
+          numeroVerbale: data.contravention.numeroVerbale,
+          comuneVerbale: data.contravention.comuneVerbale,
+          dataNotifica: data.contravention.dataNotifica,
+          sedeNotifica: data.contravention.sedeNotifica,
+          giorniScadenza: data.contravention.giorniScadenza,
+          importo: data.contravention.importo,
+          importoIntegrato: data.contravention.importoIntegrato,
+          verbaleCorrelato: data.contravention.verbaleCorrelato,
+          dataSpedizioneFinanziario: data.contravention.dataSpedizioneFinanziario,
+          dataPagamentoVerbale: data.contravention.dataPagamentoVerbale,
+          giorniRicorso: data.contravention.giorniRicorso,
+          ricorso: data.contravention.ricorso,
+          dataInvioRicorso: data.contravention.dataInvioRicorso,
+          decurtazionePunti: data.contravention.decurtazionePunti,
+          dataInvioDecurtazione: data.contravention.dataInvioDecurtazione,
+          note: data.contravention.note,
+          pagata: data.contravention.pagata,
+          trattamentoDifferenzaCedolino: data.contravention.trattamentoDifferenzaCedolino,
+          trattenutaCedolino: data.contravention.trattenutaCedolino
+        });
+        
+        console.log('Formulaire après patchValue:', this.contraventionForm.value);
+        
+        // Charger les fichiers associés
+        if (data.contravention.files && data.contravention.files.length > 0) {
+         this.uploadedFiles = data.files;
+          console.log('Fichiers chargés ratatoum:', this.uploadedFiles);
+        }
+        
+        this.isLoading = false;
+        this.showMessage('Données chargées avec succès', 'success');
+      },
+      error: (error: any) => {
+        console.error('Erreur lors du chargement:', error);
+        this.isLoading = false;
+        this.showMessage('Erreur lors du chargement des données', 'error');
+      }
+    });
   }
 
   private initForms(): void {
@@ -125,18 +193,24 @@ export class ContraventionComponent implements OnInit {
     const tipo = this.fileUploadForm.get('tipo')?.value;
     const note = this.fileUploadForm.get('note')?.value;
 
+    console.log("je suis dans selectedFiles le neauveau 2222222", this.selectedFiles);
+
     this.selectedFiles.forEach(file => {
       const allegato: AllegatoContravention = {
-        nomeFile: file.name,
-        tipo: tipo,
+        documenti: file.name,
+        tipologia: tipo,
         note: note,
         dimensione: file.size,
-        file: file
+        file: file,
+      
       };
       this.uploadedFiles.push(allegato);
+      console.log("je suis dans uploadfiles le neauveau 33333", allegato);
+
     });
 
-    // Réinitialiser la sélection
+    // Réinitialis
+    // er la sélection
     this.selectedFiles = [];
     this.fileUploadForm.patchValue({ note: '' });
     this.showMessage('Fichiers ajoutés avec succès', 'success');
@@ -228,53 +302,76 @@ loadContraventionWithFiles(id: number) {
   }
 
   onSubmit(): void {
-   // this.getAllContraventions();
-   this.getAllContraventionsWithFiles();
     if (this.contraventionForm.valid) {
       this.isLoading = true;
-   
-     
-      this.loadContraventionWithFiles(6);
+      
       const contraventionData: Contravention = {
         ...this.contraventionForm.value,
         ricorso: this.contraventionForm.get('ricorso')?.value,
         decurtazionePunti: this.contraventionForm.get('decurtazionePunti')?.value
       };
-  
-     
-      // Préparer les fichiers pour l'envoi
-      const files: File[] = this.uploadedFiles
-        .filter(allegato => allegato.file)
-        .map(allegato => allegato.file!);
-  
-      // Préparer les métadonnées des fichiers selon la nouvelle structure
-      const filesMetadata: FileMetadata[] = this.uploadedFiles
-        .filter(allegato => allegato.file)
-        .map(allegato => ({
-          tipologia: allegato.tipo,
-          numeroVerbale: this.contraventionForm.get('numeroVerbale')?.value || undefined,
-          note: allegato.note || undefined
-        }));
-  
-      console.log("Données de la contravention:", contraventionData);
-      console.log("Fichiers:", files);
-      console.log("Métadonnées des fichiers:", filesMetadata);
-  
-      // Appel du service avec la nouvelle signature
-      this.contraventionService.submitContravention(contraventionData, files, filesMetadata)
-        .subscribe({
-          next: (response: any) => {
-            console.log("Réponse du serveur:", response);
-            this.isLoading = false;
-            this.showMessage('Contravention enregistrée avec succès', 'success');
-            this.resetForm();
-          },
-          error: (error: any) => {
-            console.error("Erreur:", error);
-            this.isLoading = false;
-            this.showMessage('Erreur lors de l\'enregistrement: ' + error.message, 'error');
-          }
-        });
+      
+      // Mode édition : mettre à jour
+      if (this.isEditMode && this.contraventionId) {
+        console.log("Mode édition - Mise à jour de la contravention ID:", this.contraventionId);
+        console.log("Données de la contravention:", contraventionData);
+        
+        this.contraventionService.updateContravention(this.contraventionId, contraventionData)
+          .subscribe({
+            next: (response: Contravention) => {
+              console.log("Réponse du serveur:", response);
+              this.isLoading = false;
+              this.showMessage('Contravention mise à jour avec succès', 'success');
+              // Retourner à la liste après 1 seconde
+              setTimeout(() => {
+                this.router.navigate(['/lista-contraventions']);
+              }, 1000);
+            },
+            error: (error: any) => {
+              console.error("Erreur:", error);
+              this.isLoading = false;
+              this.showMessage('Erreur lors de la mise à jour: ' + (error.message || 'Erreur inconnue'), 'error');
+            }
+          });
+      } 
+      // Mode création : créer nouvelle contravention
+      else {
+        console.log("Mode création - Nouvelle contravention");
+        
+        // Préparer les fichiers pour l'envoi
+        const files: File[] = this.uploadedFiles
+          .filter(allegato => allegato.file)
+          .map(allegato => allegato.file!);
+    
+        // Préparer les métadonnées des fichiers selon la nouvelle structure
+        const filesMetadata: FileMetadata[] = this.uploadedFiles
+          .filter(allegato => allegato.file)
+          .map(allegato => ({
+            tipologia: allegato.tipologia,
+            numeroVerbale: this.contraventionForm.get('numeroVerbale')?.value || undefined,
+            note: allegato.note || undefined
+          }));
+    
+        console.log("Données de la contravention:", contraventionData);
+        console.log("Fichiers:", files);
+        console.log("Métadonnées des fichiers:", filesMetadata);
+    
+        // Appel du service avec la nouvelle signature
+        this.contraventionService.submitContravention(contraventionData, files, filesMetadata)
+          .subscribe({
+            next: (response: any) => {
+              console.log("Réponse du serveur:", response);
+              this.isLoading = false;
+              this.showMessage('Contravention enregistrée avec succès', 'success');
+              this.resetForm();
+            },
+            error: (error: any) => {
+              console.error("Erreur:", error);
+              this.isLoading = false;
+              this.showMessage('Erreur lors de l\'enregistrement: ' + (error.message || 'Erreur inconnue'), 'error');
+            }
+          });
+      }
     } else {
       this.markFormGroupTouched();
       this.showMessage('Veuillez remplir tous les champs obligatoires', 'error');
@@ -290,6 +387,10 @@ loadContraventionWithFiles(id: number) {
   onPrint(): void {
     // Logique pour l'impression
     window.print();
+  }
+
+  backToList(): void {
+    this.router.navigate(['/lista-contraventions']);
   }
 
   private resetForm(): void {

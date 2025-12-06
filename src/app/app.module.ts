@@ -61,6 +61,12 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'contraventions/:id',
+    component: ContraventionComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Modifier Contravention' }
+  },
+  {
     path: 'contraventions',
     component: ContraventionComponent,
     canActivate: [AuthGuard],

@@ -120,7 +120,7 @@ export class ListaContraventionsComponent implements OnInit {
           return true;
         }
         case "targa": {
-          return data.targa == filter;  // voici branche stevy1
+          return data.targa == filter;  
         }
         case "societaIntestataria": {
           return data.societaIntestataria == filter;
@@ -155,6 +155,11 @@ export class ListaContraventionsComponent implements OnInit {
 
   goToDashboard(): void {
     this.router.navigate(['/contraventions']);
+  }
+
+  editContravention(contravention: Contravention): void {
+    console.log('Navigation vers contravention:', contravention);
+    this.router.navigate(['/contraventions', contravention.id]);
   }
 
 }
