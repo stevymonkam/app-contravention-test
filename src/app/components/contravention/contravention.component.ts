@@ -327,7 +327,7 @@ loadContraventionWithFiles(id: number) {
                 this.router.navigate(['/lista-contraventions']);
               }, 1000);
             },
-            error: (error: any) => {
+            error: (error: any) => {    // feature
               console.error("Erreur:", error);
               this.isLoading = false;
               this.showMessage('Erreur lors de la mise à jour: ' + (error.message || 'Erreur inconnue'), 'error');
