@@ -78,8 +78,8 @@ export interface Contravention {
 
 export interface AllegatoContravention {
   id?: number;
-  nomeFile: string;
-  tipo: string;
+  documenti: string;
+  tipologia: string;
   dimensione?: number;
   descrizione?: string;
   note?: string;

@@ -158,7 +158,7 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row [ngClass]="{'make-gold': i%2==0 }" *matRowDef="let row; columns: displayedColumns; let i = index"></tr>
+        <tr mat-row [ngClass]="{'make-gold': i%2==0 }" *matRowDef="let row; columns: displayedColumns; let i = index" (click)="editContravention(row)" style="cursor: pointer;"></tr>
         </table>
 
         <mat-paginator [pageSizeOptions]="[5, 10, 15, 20]" #paginatorcontravention showFirstLastButtons></mat-paginator>
