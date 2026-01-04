@@ -81,7 +81,7 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
       'Authorization': `Bearer ${token}`
     });
 
-    const req = new HttpRequest('POST', `${this.apiUrl}/${contraventionId}/upload`, formData, {
+    const req = new HttpRequest('POST', `${this.apiUrl}/${contraventionId}/files `, formData, {
       reportProgress: true,
       responseType: 'json',
       headers: headers

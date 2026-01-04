@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ContraventionService } from '../../services/contravention.service';
 import { Contravention, AllegatoContravention } from '../../models/contratto.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpEvent, HttpEventType } from '@angular/common/http';
 
 // Interface pour les métadonnées des fichiers (à ajouter au début du fichier)
 interface FileMetadata {
@@ -21,6 +22,8 @@ interface FileMetadata {
 export class ContraventionComponent implements OnInit {
   contraventionForm!: FormGroup;
   uploadedFiles: AllegatoContravention[] = [];
+  uploadedFiles1: AllegatoContravention[] = [];
+
   uploadedFiles2: any[] = [];
 
   selectedFiles: File[] = [];
@@ -112,12 +115,50 @@ export class ContraventionComponent implements OnInit {
         });
         
         console.log('Formulaire après patchValue:', this.contraventionForm.value);
-        
-        // Charger les fichiers associés
-        if (data.contravention.files && data.contravention.files.length > 0) {
-         this.uploadedFiles = data.files;
-          console.log('Fichiers chargés ratatoum:', this.uploadedFiles);
+
+        console.log('Fichiers chargés datataaaaa:', data);
+
+        console.log('Fichiers chargés data.files:', data.files);
+
+        console.log('Fichiers chargés data.alleggatti:', data.contravention.allegati); 
+
+
+        if (data.contravention.allegati && data.contravention.allegati.length > 0) {
+          // Mapper les fichiers existants pour s'assurer qu'ils n'ont pas la propriété 'file'
+          this.uploadedFiles1 = data.contravention.allegati.map((file: any) => ({
+            id: file.id,
+            documenti: file.nomeFile,
+            tipologia: file.tipo,
+            note: file.note,
+            numeroVerbale: file.numeroVerbale,
+            dimensione: file.dimensione
+            // Pas de propriété 'file' pour les fichiers existants
+          }));
+          console.log('Fichiers chargés alllegaatttiiiii:', this.uploadedFiles1);
         }
+        
+        // Charger les fichiers associés (fichiers existants sans la propriété file)
+          if (data.files && data.files.length > 0) {
+          // Mapper les fichiers existants pour s'assurer qu'ils n'ont pas la propriété 'file'
+          this.uploadedFiles = data.files.map((file: any) => ({
+            id: file.id,
+            documenti: file.documenti,
+            tipologia: file.tipologia,
+            note: file.note,
+            numeroVerbale: file.numeroVerbale,
+            dimensione: file.dimensione
+            // Pas de propriété 'file' pour les fichiers existants
+          }));
+          console.log('Fichiers chargés:', this.uploadedFiles);
+        }
+                // Fusionner uploadedFiles1 et uploadedFiles si uploadedFiles1 n'est pas vide
+if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
+  // Combiner les deux tableaux
+  this.uploadedFiles = [...this.uploadedFiles1, ...this.uploadedFiles];
+  console.log('Fichiers fusionnés:', this.uploadedFiles);
+}
+
+
         
         this.isLoading = false;
         this.showMessage('Données chargées avec succès', 'success');
@@ -217,7 +258,91 @@ export class ContraventionComponent implements OnInit {
   }
 
   removeFile(index: number): void {
-    this.uploadedFiles.splice(index, 1);
+    const fileToRemove = this.uploadedFiles[index];
+    
+    // Si le fichier a un ID, c'est un fichier existant sur le serveur
+    if (fileToRemove.id && this.contraventionId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
+        this.contraventionService.deleteFile(this.contraventionId, fileToRemove.id)
+          .subscribe({
+            next: () => {
+              console.log('Fichier supprimé du serveur:', fileToRemove.documenti);
+              this.uploadedFiles.splice(index, 1);
+              this.showMessage('Fichier supprimé avec succès', 'success');
+            },
+            error: (error: any) => {
+              console.error('Erreur lors de la suppression du fichier:', error);
+              this.showMessage('Erreur lors de la suppression du fichier', 'error');
+            }
+          });
+      }
+    } else {
+      // Si le fichier n'a pas d'ID, c'est un fichier nouvellement ajouté mais pas encore uploadé
+      this.uploadedFiles.splice(index, 1);
+      this.showMessage('Fichier retiré de la liste', 'success');
+    }
+  }
+
+  // Méthode pour uploader les fichiers en mode édition
+  uploadFilesInEditMode(contraventionId: number, files: AllegatoContravention[]): void {
+    let uploadedCount = 0;
+    let errorCount = 0;
+    const totalFiles = files.length;
+
+    console.log("Début de l'upload de", totalFiles, "fichiers pour la contravention ID:", contraventionId);
+
+    files.forEach((allegato, index) => {
+      if (allegato.file) {
+        const tipo = allegato.tipologia;
+        const note = allegato.note;
+
+        console.log("3333333333444444555555", allegato.file);
+        
+        console.log(`Upload du fichier ${index + 1}/${totalFiles}:`, allegato.documenti);
+
+        this.contraventionService.uploadFile(contraventionId, allegato.file, tipo, note)
+          .subscribe({
+            next: (event: HttpEvent<any>) => {
+              if (event.type === HttpEventType.Response) {
+                uploadedCount++;
+                console.log(`Fichier ${uploadedCount}/${totalFiles} uploadé avec succès:`, allegato.documenti);
+                
+                // Si tous les fichiers ont été traités
+                if (uploadedCount + errorCount === totalFiles) {
+                  this.isLoading = false;
+                  if (errorCount === 0) {
+                    this.showMessage('Contravention et fichiers mis à jour avec succès', 'success');
+                  } else {
+                    this.showMessage(`Contravention mise à jour. ${uploadedCount} fichier(s) uploadé(s), ${errorCount} erreur(s)`, 'error');
+                  }
+                  // Retourner à la liste après 1 seconde
+                  setTimeout(() => {
+                    this.router.navigate(['/lista-contraventions']);
+                  }, 1000);
+                }
+              }
+            },
+            error: (error: any) => {
+              errorCount++;
+              console.error(`Erreur lors de l'upload du fichier ${allegato.documenti}:`, error);
+              
+              // Si tous les fichiers ont été traités
+              if (uploadedCount + errorCount === totalFiles) {
+                this.isLoading = false;
+                if (uploadedCount > 0) {
+                  this.showMessage(`Contravention mise à jour. ${uploadedCount} fichier(s) uploadé(s), ${errorCount} erreur(s)`, 'error');
+                } else {
+                  this.showMessage('Contravention mise à jour mais erreur lors de l\'upload des fichiers', 'error');
+                }
+                // Retourner à la liste après 1 seconde
+                setTimeout(() => {
+                  this.router.navigate(['/lista-contraventions']);
+                }, 1000);
+              }
+            }
+          });
+      }
+    });
   }
 
   createContravention(): void {
@@ -320,14 +445,23 @@ loadContraventionWithFiles(id: number) {
           .subscribe({
             next: (response: Contravention) => {
               console.log("Réponse du serveur:", response);
-              this.isLoading = false;
-              this.showMessage('Contravention mise à jour avec succès', 'success');
-              // Retourner à la liste après 1 seconde
-              setTimeout(() => {
-                this.router.navigate(['/lista-contraventions']);
-              }, 1000);
+              
+              // Vérifier s'il y a de nouveaux fichiers à uploader
+              const newFiles = this.uploadedFiles.filter(allegato => allegato.file);
+              
+              if (newFiles.length > 0) {
+                console.log("Upload de", newFiles.length, "nouveaux fichiers en mode édition");
+                this.uploadFilesInEditMode(this.contraventionId!, newFiles);
+              } else {
+                this.isLoading = false;
+                this.showMessage('Contravention mise à jour avec succès', 'success');
+                // Retourner à la liste après 1 seconde
+                setTimeout(() => {
+                  this.router.navigate(['/lista-contraventions']);
+                }, 1000);
+              }
             },
-            error: (error: any) => {    // feature test
+            error: (error: any) => {    
               console.error("Erreur:", error);
               this.isLoading = false;
               this.showMessage('Erreur lors de la mise à jour: ' + (error.message || 'Erreur inconnue'), 'error');
