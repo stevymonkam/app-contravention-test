@@ -256,7 +256,7 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
     this.fileUploadForm.patchValue({ note: '' });
     this.showMessage('Fichiers ajoutés avec succès', 'success');
   }
-
+//verbale // stevy
   removeFile(index: number): void {
     const fileToRemove = this.uploadedFiles[index];
     
