@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Contravention, AllegatoContravention } from '../models/contratto.model';
+import { Contravention, FileContrevention, AllegatoContravention } from '../models/contratto.model';
 
 // Interface pour les métadonnées
 interface FileMetadata {
-  tipologia: string;
+  tipo: string;
   numeroVerbale?: string;
   note?: string;
 }
@@ -37,10 +37,10 @@ export class ContraventionService {
   }
 
 
-  // Dans votre service Angular
-getContraventionWithFiles(id: number): Observable<Contravention> {
-  return this.http.get<Contravention>(`${this.apiUrl}/${id}/with-files`, { headers: this.getHeaders() });
-}
+  // Récupérer une contravention avec ses fichiers par numVerbale
+  getContraventionWithFiles(numVerbale: string): Observable<Contravention> {
+    return this.http.get<Contravention>(`${this.apiUrl}/${numVerbale}/with-files`, { headers: this.getHeaders() });
+  }
 
 getAllContraventionsWithFiles(): Observable<Contravention[]> {
   return this.http.get<Contravention[]>(`${this.apiUrl}/all-with-files`, { headers: this.getHeaders() });
@@ -48,13 +48,13 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
 
 
   // Mettre à jour une contravention
-  updateContravention(id: number, contravention: Contravention): Observable<Contravention> {
-    return this.http.put<Contravention>(`${this.apiUrl}/${id}`, contravention, { headers: this.getHeaders() });
+  updateContravention(numVerbale: string, contravention: Contravention): Observable<Contravention> {
+    return this.http.put<Contravention>(`${this.apiUrl}/${numVerbale}`, contravention, { headers: this.getHeaders() });
   }
 
-  // Récupérer une contravention par ID
-  getContravention(id: number): Observable<Contravention> {
-    return this.http.get<Contravention>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+  // Récupérer une contravention par numVerbale
+  getContravention(numVerbale: string): Observable<Contravention> {
+    return this.http.get<Contravention>(`${this.apiUrl}/${numVerbale}`, { headers: this.getHeaders() });
   }
 
   // Récupérer toutes les contraventions
@@ -63,12 +63,12 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
   }
 
   // Supprimer une contravention
-  deleteContravention(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+  deleteContravention(numVerbale: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${numVerbale}`, { headers: this.getHeaders() });
   }
 
   // Upload d'un fichier pour une contravention
-  uploadFile(contraventionId: number, file: File, tipo: string, note?: string): Observable<HttpEvent<any>> {
+  uploadFile(numVerbale: string, file: File, tipo: string, note?: string): Observable<HttpEvent<any>> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tipo', tipo);
@@ -81,7 +81,7 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
       'Authorization': `Bearer ${token}`
     });
 
-    const req = new HttpRequest('POST', `${this.apiUrl}/${contraventionId}/files `, formData, {
+    const req = new HttpRequest('POST', `${this.apiUrl}/${numVerbale}/files`, formData, {
       reportProgress: true,
       responseType: 'json',
       headers: headers
@@ -91,13 +91,13 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
   }
 
   // Supprimer un fichier
-  deleteFile(contraventionId: number, fileId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${contraventionId}/files/${fileId}`, { headers: this.getHeaders() });
+  deleteFile(numVerbale: string, fileId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${numVerbale}/files/${fileId}`, { headers: this.getHeaders() });
   }
 
   // Récupérer les fichiers d'une contravention
-  getFiles(contraventionId: number): Observable<AllegatoContravention[]> {
-    return this.http.get<AllegatoContravention[]>(`${this.apiUrl}/${contraventionId}/files`, { headers: this.getHeaders() });
+  getFiles(numVerbale: string): Observable<FileContrevention[]> {
+    return this.http.get<FileContrevention[]>(`${this.apiUrl}/${numVerbale}/files`, { headers: this.getHeaders() });
   }
 
   // Envoyer une contravention avec tous ses fichiers

@@ -126,18 +126,12 @@ export class ListaContraventionsComponent implements OnInit {
           return data.societaIntestataria == filter;
         }
         case "numeroVerbale": {
-          return data.numeroVerbale == filter;
-        }
-        case "statoVerbale": {
-          return data.statoVerbale == filter;
+          return data.numVerbale == filter;
         }
         case "dataVerbale": {
           return data.dataVerbale == filter;
         }
-        case "nominativoGuidatore": {
-          return (data.nominativoGuidatore || '') == filter;
-        }
-        default: {
+       default: {
           console.log("Invalid choice");
           return true;
         }
@@ -159,7 +153,7 @@ export class ListaContraventionsComponent implements OnInit {
 
   editContravention(contravention: Contravention): void {
     console.log('Navigation vers contravention:', contravention);
-    this.router.navigate(['/contraventions', contravention.id]);
+    this.router.navigate(['/contraventions', contravention.numVerbale]);
   }
 
 }

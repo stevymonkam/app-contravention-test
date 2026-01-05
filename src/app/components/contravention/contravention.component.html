@@ -365,10 +365,10 @@
               </thead>
               <tbody>
                 <tr *ngFor="let file of uploadedFiles; let i = index">
-                  <td>{{ file.tipologia }}</td>
-                  <td>{{ file.numeroVerbale || '-' }}</td>
+                  <td>{{ file.tipo }}</td>
+                  <td>{{ file.numVerbale || '-' }}</td>
                   <td>{{ file.note || '-' }}</td>
-                  <td>{{ file.documenti || '-' }}</td>
+                  <td>{{ file.testo1 || '-' }}</td>
                   <td>
                     <button 
                       type="button" 

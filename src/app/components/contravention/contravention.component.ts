@@ -3,13 +3,13 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContraventionService } from '../../services/contravention.service';
-import { Contravention, AllegatoContravention } from '../../models/contratto.model';
+import { Contravention, FileContrevention, AllegatoContravention } from '../../models/contratto.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 
 // Interface pour les métadonnées des fichiers (à ajouter au début du fichier)
 interface FileMetadata {
-  tipologia: string;
+  tipo: string;
   numeroVerbale?: string;
   note?: string;
 }
@@ -21,16 +21,14 @@ interface FileMetadata {
 })
 export class ContraventionComponent implements OnInit {
   contraventionForm!: FormGroup;
-  uploadedFiles: AllegatoContravention[] = [];
-  uploadedFiles1: AllegatoContravention[] = [];
-
+  uploadedFiles: FileContrevention[] = [];
+  uploadedFiles1: FileContrevention[] = [];
   uploadedFiles2: any[] = [];
-
   selectedFiles: File[] = [];
   fileUploadForm!: FormGroup;
   isLoading = false;
   uploadProgress = 0;
-  contraventionId: number | null = null;
+  contraventionNumVerbale: any;
   isEditMode = false;
   
 
@@ -70,20 +68,21 @@ export class ContraventionComponent implements OnInit {
     // Vérifier si on est en mode édition
     this.route.params.subscribe(params => {
       console.log('Params reçus:', params);
-      if (params['id']) {
-        this.contraventionId = +params['id'];
+      if (params['numVerbale']) {
+        this.contraventionNumVerbale = params['numVerbale'];
         this.isEditMode = true;
-        console.log('Mode édition activé, ID:', this.contraventionId);
-        this.loadContraventionData(this.contraventionId);
+        console.log('Mode édition activé, numVerbale:', this.contraventionNumVerbale);
+        this.loadContraventionData(this.contraventionNumVerbale);
       } else {
-        console.log('Mode création - pas d\'ID');
+        console.log('Mode création - pas de numVerbale');
       }
     });
   }
 
-  loadContraventionData(id: number): void {
+  loadContraventionData(numVerbale: string): void {
+    console.log('loadContraventionData appelée avec numVerbale:', numVerbale);
     this.isLoading = true;
-    this.contraventionService.getContraventionWithFiles(id).subscribe({
+    this.contraventionService.getContraventionWithFiles(numVerbale).subscribe({
       next: (data: any) => {
         console.log('Contravention chargée dedans stevy1:', data, data.files, data.files[0]);
         this.contraventionForm.patchValue({
@@ -125,14 +124,18 @@ export class ContraventionComponent implements OnInit {
 
         if (data.contravention.allegati && data.contravention.allegati.length > 0) {
           // Mapper les fichiers existants pour s'assurer qu'ils n'ont pas la propriété 'file'
-          this.uploadedFiles1 = data.contravention.allegati.map((file: any) => ({
-            id: file.id,
-            documenti: file.nomeFile,
-            tipologia: file.tipo,
+          this.uploadedFiles1 = data.contravention.files.map((file: any) => ({
+            id: file.id_correlato,
+            numVerbale: file.numVerbale,
+            elemento: file.elemento,
+            tipo: file.tipo,
+            data: file.data,
+            testo1: file.testo1,
+            testo2: file.testo2,
             note: file.note,
-            numeroVerbale: file.numeroVerbale,
-            dimensione: file.dimensione
-            // Pas de propriété 'file' pour les fichiers existants
+            createdAt: file.createdAt,
+            updatedAt: file.updatedAt,
+            file: file.file
           }));
           console.log('Fichiers chargés alllegaatttiiiii:', this.uploadedFiles1);
         }
@@ -141,13 +144,17 @@ export class ContraventionComponent implements OnInit {
           if (data.files && data.files.length > 0) {
           // Mapper les fichiers existants pour s'assurer qu'ils n'ont pas la propriété 'file'
           this.uploadedFiles = data.files.map((file: any) => ({
-            id: file.id,
-            documenti: file.documenti,
-            tipologia: file.tipologia,
+            id: file.id_correlato,
+            numVerbale: file.numVerbale,
+            elemento: file.elemento,
+            tipo: file.tipo,
+            data: file.data,
+            testo1: file.testo1,
+            testo2: file.testo2,
             note: file.note,
-            numeroVerbale: file.numeroVerbale,
-            dimensione: file.dimensione
-            // Pas de propriété 'file' pour les fichiers existants
+            createdAt: file.createdAt,
+            updatedAt: file.updatedAt,
+            file: file.file
           }));
           console.log('Fichiers chargés:', this.uploadedFiles);
         }
@@ -238,12 +245,13 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
 
     this.selectedFiles.forEach(file => {
       const allegato: AllegatoContravention = {
-        documenti: file.name,
-        tipologia: tipo,
+        testo1: file.name,
+        tipo: tipo,
         note: note,
-        dimensione: file.size,
+        numVerbale: this.contraventionNumVerbale,
         file: file,
-      
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
       this.uploadedFiles.push(allegato);
       console.log("je suis dans uploadfiles le neauveau 33333", allegato);
@@ -256,17 +264,17 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
     this.fileUploadForm.patchValue({ note: '' });
     this.showMessage('Fichiers ajoutés avec succès', 'success');
   }
-//verbale // stevy
+
   removeFile(index: number): void {
     const fileToRemove = this.uploadedFiles[index];
     
     // Si le fichier a un ID, c'est un fichier existant sur le serveur
-    if (fileToRemove.id && this.contraventionId) {
+    if (fileToRemove.id && this.contraventionNumVerbale) {
       if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier?')) {
-        this.contraventionService.deleteFile(this.contraventionId, fileToRemove.id)
+        this.contraventionService.deleteFile(this.contraventionNumVerbale, fileToRemove.id)
           .subscribe({
             next: () => {
-              console.log('Fichier supprimé du serveur:', fileToRemove.documenti);
+              console.log('Fichier supprimé du serveur:', fileToRemove.testo1);
               this.uploadedFiles.splice(index, 1);
               this.showMessage('Fichier supprimé avec succès', 'success');
             },
@@ -284,28 +292,28 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
   }
 
   // Méthode pour uploader les fichiers en mode édition
-  uploadFilesInEditMode(contraventionId: number, files: AllegatoContravention[]): void {
+  uploadFilesInEditMode(numVerbale: string, files: FileContrevention[]): void {
     let uploadedCount = 0;
     let errorCount = 0;
     const totalFiles = files.length;
 
-    console.log("Début de l'upload de", totalFiles, "fichiers pour la contravention ID:", contraventionId);
+    console.log("Début de l'upload de", totalFiles, "fichiers pour la contravention numVerbale:", numVerbale);
 
     files.forEach((allegato, index) => {
       if (allegato.file) {
-        const tipo = allegato.tipologia;
+        const tipo = allegato.tipo || '';
         const note = allegato.note;
 
-        console.log("3333333333444444555555", allegato.file);
+        console.log("Fichier à uploader:", allegato.file);
         
-        console.log(`Upload du fichier ${index + 1}/${totalFiles}:`, allegato.documenti);
+        console.log(`Upload du fichier ${index + 1}/${totalFiles}:`, allegato.elemento);
 
-        this.contraventionService.uploadFile(contraventionId, allegato.file, tipo, note)
+        this.contraventionService.uploadFile(numVerbale, allegato.file, tipo, note)
           .subscribe({
             next: (event: HttpEvent<any>) => {
               if (event.type === HttpEventType.Response) {
                 uploadedCount++;
-                console.log(`Fichier ${uploadedCount}/${totalFiles} uploadé avec succès:`, allegato.documenti);
+                console.log(`Fichier ${uploadedCount}/${totalFiles} uploadé avec succès:`, allegato.elemento);
                 
                 // Si tous les fichiers ont été traités
                 if (uploadedCount + errorCount === totalFiles) {
@@ -324,7 +332,7 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
             },
             error: (error: any) => {
               errorCount++;
-              console.error(`Erreur lors de l'upload du fichier ${allegato.documenti}:`, error);
+              console.error(`Erreur lors de l'upload du fichier ${allegato.elemento}:`, error);
               
               // Si tous les fichiers ont été traités
               if (uploadedCount + errorCount === totalFiles) {
@@ -368,7 +376,7 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
   }
 
   // Dans votre component
-loadContraventionWithFiles(id: number) {
+/*loadContraventionWithFiles(id: number) {
   this.contraventionService.getContraventionWithFiles(id)
     .subscribe({
       next: (contravention: Contravention) => {
@@ -384,11 +392,11 @@ loadContraventionWithFiles(id: number) {
         console.error('Erreur:', error);
       }
     });
-}
+}*/
 
 
-  getFiles(contraventionId: number): void {
-    this.contraventionService.getFiles(contraventionId).subscribe({
+  getFiles(numVerbale: string): void {
+    this.contraventionService.getFiles(numVerbale).subscribe({
       next: (response: AllegatoContravention[]) => {
         console.log("je suis dans next getFiles");
         console.log(response);
@@ -437,11 +445,11 @@ loadContraventionWithFiles(id: number) {
       };
       
       // Mode édition : mettre à jour
-      if (this.isEditMode && this.contraventionId) {
-        console.log("Mode édition - Mise à jour de la contravention ID:", this.contraventionId);
+      if (this.isEditMode && this.contraventionNumVerbale) {
+        console.log("Mode édition - Mise à jour de la contravention numVerbale:", this.contraventionNumVerbale);
         console.log("Données de la contravention:", contraventionData);
         
-        this.contraventionService.updateContravention(this.contraventionId, contraventionData)
+        this.contraventionService.updateContravention(this.contraventionNumVerbale, contraventionData)
           .subscribe({
             next: (response: Contravention) => {
               console.log("Réponse du serveur:", response);
@@ -451,7 +459,7 @@ loadContraventionWithFiles(id: number) {
               
               if (newFiles.length > 0) {
                 console.log("Upload de", newFiles.length, "nouveaux fichiers en mode édition");
-                this.uploadFilesInEditMode(this.contraventionId!, newFiles);
+                this.uploadFilesInEditMode(this.contraventionNumVerbale!, newFiles);
               } else {
                 this.isLoading = false;
                 this.showMessage('Contravention mise à jour avec succès', 'success');
@@ -481,7 +489,7 @@ loadContraventionWithFiles(id: number) {
         const filesMetadata: FileMetadata[] = this.uploadedFiles
           .filter(allegato => allegato.file)
           .map(allegato => ({
-            tipologia: allegato.tipologia,
+            tipo: allegato.tipo ?? 'ALTRO',
             numeroVerbale: this.contraventionForm.get('numeroVerbale')?.value || undefined,
             note: allegato.note || undefined
           }));
