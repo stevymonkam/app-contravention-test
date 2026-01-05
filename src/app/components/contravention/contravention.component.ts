@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContraventionService } from '../../services/contravention.service';
-import { Contravention, FileContrevention, AllegatoContravention } from '../../models/contratto.model';
+import { Contravention, FileContrevention } from '../../models/contratto.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 
@@ -32,25 +32,12 @@ export class ContraventionComponent implements OnInit {
   isEditMode = false;
   
 
-  // Options pour les dropdowns
+  // Options pour les dropdowns (si nécessaire)
   societaOptions = [
     { value: '', label: '---' },
     { value: 'societa1', label: 'Società 1' },
     { value: 'societa2', label: 'Società 2' },
     { value: 'societa3', label: 'Società 3' }
-  ];
-
-  statoVerbaleOptions = [
-    { value: 'da_pagare', label: 'da pagare' },
-    { value: 'pagato', label: 'Pagato' },
-    { value: 'in_appello', label: 'In Appello' }
-  ];
-
-  tipoFileOptions = [
-    { value: 'multa', label: 'Multa' },
-    { value: 'verbale', label: 'Verbale' },
-    { value: 'documento', label: 'Documento' },
-    { value: 'altro', label: 'Altro' }
   ];
 
   constructor(
@@ -83,89 +70,46 @@ export class ContraventionComponent implements OnInit {
     console.log('loadContraventionData appelée avec numVerbale:', numVerbale);
     this.isLoading = true;
     this.contraventionService.getContraventionWithFiles(numVerbale).subscribe({
-      next: (data: any) => {
-        console.log('Contravention chargée dedans stevy1:', data, data.files, data.files[0]);
+      next: (contravention: Contravention) => {
+        console.log('Contravention chargée depuis le serveur:', contravention);
+        console.log('Formulaire avant patchValue:', this.contraventionForm.value);
+        
         this.contraventionForm.patchValue({
-          targa: data.contravention.targa,
-          societaIntestataria: data.contravention.societaIntestataria,
-          nominativoGuidatore: data.contravention.nominativoGuidatore,
-          mailGuidatore: data.contravention.mailGuidatore,
-          statoVerbale: data.contravention.statoVerbale,
-          dataVerbale: data.contravention.dataVerbale,
-          numeroVerbale: data.contravention.numeroVerbale,
-          comuneVerbale: data.contravention.comuneVerbale,
-          dataNotifica: data.contravention.dataNotifica,
-          sedeNotifica: data.contravention.sedeNotifica,
-          giorniScadenza: data.contravention.giorniScadenza,
-          importo: data.contravention.importo,
-          importoIntegrato: data.contravention.importoIntegrato,
-          verbaleCorrelato: data.contravention.verbaleCorrelato,
-          dataSpedizioneFinanziario: data.contravention.dataSpedizioneFinanziario,
-          dataPagamentoVerbale: data.contravention.dataPagamentoVerbale,
-          giorniRicorso: data.contravention.giorniRicorso,
-          ricorso: data.contravention.ricorso,
-          dataInvioRicorso: data.contravention.dataInvioRicorso,
-          decurtazionePunti: data.contravention.decurtazionePunti,
-          dataInvioDecurtazione: data.contravention.dataInvioDecurtazione,
-          note: data.contravention.note,
-          pagata: data.contravention.pagata,
-          trattamentoDifferenzaCedolino: data.contravention.trattamentoDifferenzaCedolino,
-          trattenutaCedolino: data.contravention.trattenutaCedolino
+          numVerbale: contravention.numVerbale,
+          targa: contravention.targa,
+          guidatore: contravention.guidatore,
+          emailGuidatore: contravention.emailGuidatore,
+          societaIntestataria: contravention.societaIntestataria,
+          dataVerbale: contravention.dataVerbale,
+          dataNotifica: contravention.dataNotifica,
+          comuneVerbale: contravention.comuneVerbale,
+          sedeNotifica: contravention.sedeNotifica,
+          ggScadenza: contravention.ggScadenza,
+          importo: contravention.importo,
+          importoIntegrato: contravention.importoIntegrato,
+          numVerbaleCorrelato: contravention.numVerbaleCorrelato,
+          dataSpediziFinanz: contravention.dataSpediziFinanz,
+          dataPagamentoVerb: contravention.dataPagamentoVerb,
+          pagatoAziendaDipendente: contravention.pagatoAziendaDipendente,
+          ricorso: contravention.ricorso,
+          ggRicorso: contravention.ggRicorso,
+          dataInvioRicorso: contravention.dataInvioRicorso,
+          decurtaPunti: contravention.decurtaPunti,
+          dataInvioDecurtazione: contravention.dataInvioDecurtazione,
+          mmyyyyTrattenutaCedolino: contravention.mmyyyyTrattenutaCedolino,
+          mmyyyyTrattenutaDiffMultaCedolino: contravention.mmyyyyTrattenutaDiffMultaCedolino,
+          idStatoPratica: contravention.idStatoPratica,
+          exSocietaIntestataria: contravention.exSocietaIntestataria,
+          note: contravention.note
         });
         
         console.log('Formulaire après patchValue:', this.contraventionForm.value);
-
-        console.log('Fichiers chargés datataaaaa:', data);
-
-        console.log('Fichiers chargés data.files:', data.files);
-
-        console.log('Fichiers chargés data.alleggatti:', data.contravention.allegati); 
-
-
-        if (data.contravention.allegati && data.contravention.allegati.length > 0) {
-          // Mapper les fichiers existants pour s'assurer qu'ils n'ont pas la propriété 'file'
-          this.uploadedFiles1 = data.contravention.files.map((file: any) => ({
-            id: file.id_correlato,
-            numVerbale: file.numVerbale,
-            elemento: file.elemento,
-            tipo: file.tipo,
-            data: file.data,
-            testo1: file.testo1,
-            testo2: file.testo2,
-            note: file.note,
-            createdAt: file.createdAt,
-            updatedAt: file.updatedAt,
-            file: file.file
-          }));
-          console.log('Fichiers chargés alllegaatttiiiii:', this.uploadedFiles1);
-        }
         
-        // Charger les fichiers associés (fichiers existants sans la propriété file)
-          if (data.files && data.files.length > 0) {
-          // Mapper les fichiers existants pour s'assurer qu'ils n'ont pas la propriété 'file'
-          this.uploadedFiles = data.files.map((file: any) => ({
-            id: file.id_correlato,
-            numVerbale: file.numVerbale,
-            elemento: file.elemento,
-            tipo: file.tipo,
-            data: file.data,
-            testo1: file.testo1,
-            testo2: file.testo2,
-            note: file.note,
-            createdAt: file.createdAt,
-            updatedAt: file.updatedAt,
-            file: file.file
-          }));
+        // Charger les fichiers associés
+        if (contravention.files && contravention.files.length > 0) {
+          this.uploadedFiles = contravention.files;
           console.log('Fichiers chargés:', this.uploadedFiles);
         }
-                // Fusionner uploadedFiles1 et uploadedFiles si uploadedFiles1 n'est pas vide
-if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
-  // Combiner les deux tableaux
-  this.uploadedFiles = [...this.uploadedFiles1, ...this.uploadedFiles];
-  console.log('Fichiers fusionnés:', this.uploadedFiles);
-}
-
-
         
         this.isLoading = false;
         this.showMessage('Données chargées avec succès', 'success');
@@ -181,36 +125,41 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
   private initForms(): void {
     // Formulaire principal de contravention
     this.contraventionForm = this.fb.group({
-      targa: ['', Validators.required],
-      societaIntestataria: ['', Validators.required],
-      nominativoGuidatore: [''],
-      mailGuidatore: [''],
-      statoVerbale: ['da_pagare', Validators.required],
-      dataVerbale: ['', Validators.required],
-      numeroVerbale: ['', Validators.required],
+      numVerbale: ['', Validators.required],
+      targa: [''],
+      guidatore: [''],
+      emailGuidatore: [''],
+      societaIntestataria: [''],
+      dataVerbale: [''],
+      dataNotifica: [''],
       comuneVerbale: [''],
-      dataNotifica: ['', Validators.required],
       sedeNotifica: [''],
-      giorniScadenza: ['', Validators.required],
+      ggScadenza: [''],
       importo: [''],
       importoIntegrato: [''],
-      verbaleCorrelato: [''],
-      dataSpedizioneFinanziario: [''],
-      dataPagamentoVerbale: [''],
-      giorniRicorso: [''],
+      numVerbaleCorrelato: [''],
+      dataSpediziFinanz: [''],
+      dataPagamentoVerb: [''],
+      pagatoAziendaDipendente: [false],
       ricorso: [false],
+      ggRicorso: [''],
       dataInvioRicorso: [''],
-      decurtazionePunti: [false],
+      decurtaPunti: [false],
       dataInvioDecurtazione: [''],
-      note: [''],
-      pagata: ['Az.da', Validators.required],
-      trattamentoDifferenzaCedolino: [''],
-      trattenutaCedolino: ['']
+      mmyyyyTrattenutaCedolino: [''],
+      mmyyyyTrattenutaDiffMultaCedolino: [''],
+      idStatoPratica: [''],
+      exSocietaIntestataria: [''],
+      note: ['']
     });
 
     // Formulaire pour l'upload de fichiers
     this.fileUploadForm = this.fb.group({
-      tipo: ['multa', Validators.required],
+      elemento: [''],
+      tipo: [''],
+      data: [''],
+      testo1: [''],
+      testo2: [''],
       note: ['']
     });
   }
@@ -238,30 +187,33 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
       return;
     }
 
+    const elemento = this.fileUploadForm.get('elemento')?.value;
     const tipo = this.fileUploadForm.get('tipo')?.value;
+    const data = this.fileUploadForm.get('data')?.value;
+    const testo1 = this.fileUploadForm.get('testo1')?.value;
+    const testo2 = this.fileUploadForm.get('testo2')?.value;
     const note = this.fileUploadForm.get('note')?.value;
 
-    console.log("je suis dans selectedFiles le neauveau 2222222", this.selectedFiles);
+    console.log("Fichiers sélectionnés:", this.selectedFiles);
 
     this.selectedFiles.forEach(file => {
-      const allegato: AllegatoContravention = {
-        testo1: file.name,
+      const fileContrevention: FileContrevention = {
+        numVerbale: this.contraventionNumVerbale || '',
+        elemento: elemento || file.name,
         tipo: tipo,
+        data: data,
+        testo1: testo1,
+        testo2: testo2,
         note: note,
-        numVerbale: this.contraventionNumVerbale,
-        file: file,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        file: file
       };
-      this.uploadedFiles.push(allegato);
-      console.log("je suis dans uploadfiles le neauveau 33333", allegato);
-
+      this.uploadedFiles.push(fileContrevention);
+      console.log("Fichier ajouté à la liste:", fileContrevention);
     });
 
-    // Réinitialis
-    // er la sélection
+    // Réinitialiser la sélection
     this.selectedFiles = [];
-    this.fileUploadForm.patchValue({ note: '' });
+    this.fileUploadForm.reset();
     this.showMessage('Fichiers ajoutés avec succès', 'success');
   }
 
@@ -397,13 +349,11 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
 
   getFiles(numVerbale: string): void {
     this.contraventionService.getFiles(numVerbale).subscribe({
-      next: (response: AllegatoContravention[]) => {
-        console.log("je suis dans next getFiles");
-        console.log(response);
+      next: (response: FileContrevention[]) => {
+        console.log("Fichiers récupérés:", response);
       },
       error: (error: any) => {
-        console.log("je suis dans error getFiles");
-        console.log(error);
+        console.error("Erreur lors de la récupération des fichiers:", error);
       }
     });
   }
@@ -537,14 +487,13 @@ if (this.uploadedFiles1 && this.uploadedFiles1.length > 0) {
 
   private resetForm(): void {
     this.contraventionForm.reset({
-      statoVerbale: 'da_pagare',
       ricorso: false,
-      decurtazionePunti: false,
-      pagata: 'Az.da'
+      decurtaPunti: false,
+      pagatoAziendaDipendente: false
     });
     this.uploadedFiles = [];
     this.selectedFiles = [];
-    this.fileUploadForm.reset({ tipo: 'multa' });
+    this.fileUploadForm.reset();
   }
 
   private markFormGroupTouched(): void {
