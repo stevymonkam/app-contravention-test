@@ -31,10 +31,12 @@
         <label>Stato Verbale</label>
         <select formControlName="idStatoPratica">
           <option value="">-- Seleziona --</option>
-          <option value="pagato">pagato</option>
-          <option value="non_pagato">non pagato</option>
-          <option value="in_attesa">in attesa</option>
-          <option value="ricorso">ricorso</option>
+          <option value="1">da pagare</option>
+          <option value="2">pagato</option>
+          <option value="3">contestato</option>
+          <option value="4">sospeso in attesa ricevuta</option>
+          <option value="5">sospeso in attesa di decurtaz punti</option>
+          <option value="6">annullato</option>
         </select>
       </div>
 
@@ -191,7 +193,7 @@
       
       <input type="file" id="fileInput" multiple (change)="onFileSelected($event)" style="display: none;">
       
-      <table *ngIf="uploadedFiles.length > 0">
+      <table >
         <thead>
           <tr>
             <th class="checkbox-cell"></th>
@@ -217,19 +219,19 @@
     
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button type="button" (click)="onCancel()">Cancella</button>
+      <button type="button" >Cancella</button>
       <button type="button" (click)="onPrint()">Stampa</button>
       <button type="button">Invia</button>
     </div>
     
     <!-- Final Buttons -->
     <div class="final-buttons">
-      <button type="button">Elimina</button>
+      <button type="button" (click)="onCancel()">Elimina</button>
       <button type="submit" class="btn-primary" [disabled]="isLoading">
         <span *ngIf="isLoading">{{ isEditMode ? 'Aggiornamento...' : 'Salvataggio...' }}</span>
         <span *ngIf="!isLoading">Salva</span>
       </button>
-      <button type="button" *ngIf="isEditMode" (click)="backToList()">Annulla</button>
+      <button type="button" (click)="backToList()">Annulla</button>
     </div>
   </form>
 </div>
