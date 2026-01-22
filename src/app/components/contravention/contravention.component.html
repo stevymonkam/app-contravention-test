@@ -5,7 +5,7 @@
       <!-- Ligne 1 - Colonne 1 -->
       <div class="form-group">
         <label>Targa</label>
-        <input type="text" formControlName="targa">
+        <input type="text" formControlName="targa" [readonly]="isFieldsLocked">
       </div>
       
       <!-- Ligne 1 - Colonne 2 -->
@@ -50,7 +50,7 @@
       <!-- Ligne 2 - Colonne 1 -->
       <div class="form-group">
         <label>Data Verbale</label>
-        <input type="date" formControlName="dataVerbale">
+        <input type="date" formControlName="dataVerbale" [readonly]="isFieldsLocked">
       </div>
       
       <!-- Ligne 2 - Colonne 2 -->

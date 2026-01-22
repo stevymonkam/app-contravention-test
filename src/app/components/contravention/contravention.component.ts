@@ -1,6 +1,6 @@
 // contravention.component.ts
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContraventionService } from '../../services/contravention.service';
 import { Contravention, FileContrevention } from '../../models/contratto.model';
@@ -13,6 +13,133 @@ interface FileMetadata {
   tipo: string;
   numeroVerbale?: string;
   note?: string;
+}
+
+// Validateurs personnalisés
+class ContraventionValidators {
+  // Data verbale <= oggi
+  static dataVerbaleNotFuture(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const dataVerbale = new Date(control.value);
+      return dataVerbale > today ? { futureDate: true } : null;
+    };
+  }
+
+  // Data notifica >= data verbale
+  static dataNotificaAfterDataVerbale(form: FormGroup): ValidationErrors | null {
+    const dataVerbale = form.get('dataVerbale')?.value;
+    const dataNotifica = form.get('dataNotifica')?.value;
+    
+    if (!dataVerbale || !dataNotifica) return null;
+    
+    const dateVerbale = new Date(dataVerbale);
+    const dateNotifica = new Date(dataNotifica);
+    
+    return dateNotifica < dateVerbale ? { dataNotificaBeforeVerbale: true } : null;
+  }
+
+  // Data spedizione > data notifica
+  static dataSpedizioneAfterNotifica(form: FormGroup): ValidationErrors | null {
+    const dataNotifica = form.get('dataNotifica')?.value;
+    const dataSpedizione = form.get('dataSpediziFinanz')?.value;
+    
+    if (!dataNotifica || !dataSpedizione) return null;
+    
+    const dateNotifica = new Date(dataNotifica);
+    const dateSpedizione = new Date(dataSpedizione);
+    
+    return dateSpedizione <= dateNotifica ? { dataSpedizioneInvalid: true } : null;
+  }
+
+  // Data pagamento >= data notifica (se stato = pagato)
+  static dataPagamentoValid(form: FormGroup): ValidationErrors | null {
+    const statoVerbale = form.get('idStatoPratica')?.value;
+    const dataNotifica = form.get('dataNotifica')?.value;
+    const dataPagamento = form.get('dataPagamentoVerb')?.value;
+    
+    if (statoVerbale !== '2' || !dataNotifica || !dataPagamento) return null;
+    
+    const dateNotifica = new Date(dataNotifica);
+    const datePagamento = new Date(dataPagamento);
+    
+    return datePagamento < dateNotifica ? { dataPagamentoInvalid: true } : null;
+  }
+
+  // Pagata: A si data spedizione presente, altrimenti D
+  static pagataValid(form: FormGroup): ValidationErrors | null {
+    const statoVerbale = form.get('idStatoPratica')?.value;
+    const dataPagamento = form.get('dataPagamentoVerb')?.value;
+    const dataSpedizione = form.get('dataSpediziFinanz')?.value;
+    const pagata = form.get('pagatoAziendaDipendente')?.value;
+    
+    if (statoVerbale !== '2' || !dataPagamento) return null;
+    
+    if (dataSpedizione && pagata !== true) {
+      return { pagataDeveEssereAzienda: true };
+    }
+    
+    if (!dataSpedizione && pagata !== false) {
+      return { pagataDeveEssereDipendente: true };
+    }
+    
+    return null;
+  }
+
+  // Ricorso: stato verbale = contestata (3)
+  static ricorsoValid(form: FormGroup): ValidationErrors | null {
+    const statoVerbale = form.get('idStatoPratica')?.value;
+    const ricorso = form.get('ricorso')?.value;
+    
+    if (ricorso === true && statoVerbale !== '3') {
+      return { ricorsoRequiresContestata: true };
+    }
+    
+    return null;
+  }
+
+  // Data invio ricorso > data notifica
+  static dataInvioRicorsoValid(form: FormGroup): ValidationErrors | null {
+    const ricorso = form.get('ricorso')?.value;
+    const statoVerbale = form.get('idStatoPratica')?.value;
+    const dataNotifica = form.get('dataNotifica')?.value;
+    const dataInvioRicorso = form.get('dataInvioRicorso')?.value;
+    
+    if (!ricorso || statoVerbale !== '3' || !dataNotifica || !dataInvioRicorso) return null;
+    
+    const dateNotifica = new Date(dataNotifica);
+    const dateInvioRicorso = new Date(dataInvioRicorso);
+    
+    return dateInvioRicorso <= dateNotifica ? { dataInvioRicorsoInvalid: true } : null;
+  }
+
+  // Data invio decurtazione > data notifica
+  static dataInvioDecurtazioneValid(form: FormGroup): ValidationErrors | null {
+    const decurtaPunti = form.get('decurtaPunti')?.value;
+    const dataNotifica = form.get('dataNotifica')?.value;
+    const dataInvioDecurtazione = form.get('dataInvioDecurtazione')?.value;
+    
+    if (!decurtaPunti || !dataNotifica || !dataInvioDecurtazione) return null;
+    
+    const dateNotifica = new Date(dataNotifica);
+    const dateInvioDecurtazione = new Date(dataInvioDecurtazione);
+    
+    return dateInvioDecurtazione <= dateNotifica ? { dataInvioDecurtazioneInvalid: true } : null;
+  }
+
+  // Trattenuta su cedolino: solo se pagata = A
+  static trattenutaCedulinoValid(form: FormGroup): ValidationErrors | null {
+    const pagata = form.get('pagatoAziendaDipendente')?.value;
+    const trattenuta = form.get('mmyyyyTrattenutaCedolino')?.value;
+    
+    if (trattenuta && pagata !== true) {
+      return { trattenutaRequiresAzienda: true };
+    }
+    
+    return null;
+  }
 }
 
 @Component({
@@ -32,6 +159,7 @@ export class ContraventionComponent implements OnInit {
   contraventionNumVerbale: any;
   isEditMode = false;
   selectedFileIndices: Set<number> = new Set();
+  isFieldsLocked = false; // Blocage des champs targa et dataVerbale si stato = pagato ou annullato
   
 
   // Options pour les dropdowns (si nécessaire)
@@ -115,6 +243,12 @@ export class ContraventionComponent implements OnInit {
           console.log('Fichiers chargés:', this.uploadedFiles);
         }
         
+        // Mettre à jour l'état des champs selon le stato verbale
+        // Utiliser setTimeout pour s'assurer que le formulaire est complètement initialisé
+        setTimeout(() => {
+          this.updateFieldsDisabledState(contravention.contravention.idStatoPratica);
+        }, 0);
+        
         this.isLoading = false;
         this.showMessage('Données chargées avec succès', 'success');
       },
@@ -134,7 +268,7 @@ export class ContraventionComponent implements OnInit {
       guidatore: [''],
       emailGuidatore: [''],
       societaIntestataria: [''],
-      dataVerbale: [''],
+      dataVerbale: ['', ContraventionValidators.dataVerbaleNotFuture()],
       dataNotifica: [''],
       comuneVerbale: [''],
       sedeNotifica: [''],
@@ -155,7 +289,21 @@ export class ContraventionComponent implements OnInit {
       idStatoPratica: [''],
       exSocietaIntestataria: [''],
       note: ['']
+    }, {
+      validators: [
+        ContraventionValidators.dataNotificaAfterDataVerbale,
+        ContraventionValidators.dataSpedizioneAfterNotifica,
+        ContraventionValidators.dataPagamentoValid,
+        ContraventionValidators.pagataValid,
+        ContraventionValidators.ricorsoValid,
+        ContraventionValidators.dataInvioRicorsoValid,
+        ContraventionValidators.dataInvioDecurtazioneValid,
+        ContraventionValidators.trattenutaCedulinoValid
+      ]
     });
+
+    // Ajouter des listeners pour revalider le formulaire
+    this.setupValidationListeners();
 
     // Formulaire pour l'upload de fichiers
     this.fileUploadForm = this.fb.group({
@@ -166,6 +314,74 @@ export class ContraventionComponent implements OnInit {
       testo2: [''],
       note: ['']
     });
+  }
+
+  private setupValidationListeners(): void {
+    // Revalider quand dataVerbale change
+    this.contraventionForm.get('dataVerbale')?.valueChanges.subscribe(() => {
+      this.contraventionForm.get('dataNotifica')?.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Revalider quand dataNotifica change
+    this.contraventionForm.get('dataNotifica')?.valueChanges.subscribe(() => {
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Revalider quand dataSpediziFinanz change
+    this.contraventionForm.get('dataSpediziFinanz')?.valueChanges.subscribe(() => {
+      this.contraventionForm.get('pagatoAziendaDipendente')?.updateValueAndValidity({ emitEvent: false });
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Revalider quand dataPagamentoVerb change
+    this.contraventionForm.get('dataPagamentoVerb')?.valueChanges.subscribe(() => {
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Revalider quand idStatoPratica change
+    this.contraventionForm.get('idStatoPratica')?.valueChanges.subscribe((value) => {
+      console.log('▶ idStatoPratica changé:', value, 'isEditMode:', this.isEditMode);
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+      this.updateFieldsDisabledState(value);
+    });
+
+    // Revalider quand ricorso change
+    this.contraventionForm.get('ricorso')?.valueChanges.subscribe(() => {
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Revalider quand decurtaPunti change
+    this.contraventionForm.get('decurtaPunti')?.valueChanges.subscribe(() => {
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Revalider quand pagatoAziendaDipendente change
+    this.contraventionForm.get('pagatoAziendaDipendente')?.valueChanges.subscribe(() => {
+      this.contraventionForm.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  /**
+   * Active ou désactive les champs targa, dataVerbale et numVerbale
+   * selon l'état du verbale (Pagato ou Annullato)
+   * UNIQUEMENT EN MODE ÉDITION
+   */
+  private updateFieldsDisabledState(statoVerbale: string): void {
+    // Ne bloquer les champs QUE en mode édition
+    if (!this.isEditMode) {
+      console.log('Mode création : aucun champ bloqué');
+      this.isFieldsLocked = false;
+      return;
+    }
+    
+    // Stati che bloccano la modifica: 2 = Pagato, 6 = Annullato
+    if (statoVerbale == '2' || statoVerbale == '6') {
+      this.isFieldsLocked = true;
+    } else {
+      this.isFieldsLocked = false;
+    }
+    
+    console.log(`Mode édition - Stato verbale: ${statoVerbale}, isEditMode: ${this.isEditMode}, isFieldsLocked: ${this.isFieldsLocked}`);
   }
 
   // Méthode pour déclencher le clic sur l'input file
@@ -490,11 +706,26 @@ export class ContraventionComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Afficher les erreurs de validation si le formulaire est invalide
+    if (this.contraventionForm.invalid) {
+      this.markFormGroupTouched();
+      const errors = this.getValidationErrors();
+      if (errors.length > 0) {
+        const errorMessage = 'Erreurs de validation:\n' + errors.join('\n');
+        this.showMessage(errorMessage, 'error');
+        console.error('Erreurs de validation:', errors);
+      } else {
+        this.showMessage('Veuillez remplir tous les champs obligatoires', 'error');
+      }
+      return;
+    }
+    
     if (this.contraventionForm.valid) {
       this.isLoading = true;
       
+      // Utiliser getRawValue() pour inclure les champs désactivés (targa, dataVerbale)
       const contraventionData: Contravention = {
-        ...this.contraventionForm.value,
+        ...this.contraventionForm.getRawValue(),
         ricorso: this.contraventionForm.get('ricorso')?.value,
         decurtazionePunti: this.contraventionForm.get('decurtazionePunti')?.value
       };
@@ -594,6 +825,8 @@ export class ContraventionComponent implements OnInit {
 
 
   onCancel(): void {
+
+    console.log("onCancel appelée:"+this.isEditMode+" "+this.contraventionNumVerbale);
     if (this.isEditMode && this.contraventionNumVerbale) {
       // Demander confirmation avant de supprimer
       if (confirm('Sei sicuro di voler eliminare questa contravvenzione?')) {
@@ -646,9 +879,56 @@ export class ContraventionComponent implements OnInit {
 
   private showMessage(message: string, type: 'success' | 'error'): void {
     this.snackBar.open(message, 'Fermer', {
-      duration: 3000,
+      duration: 5000,
       panelClass: type === 'success' ? ['success-snackbar'] : ['error-snackbar']
     });
+  }
+
+  private getValidationErrors(): string[] {
+    const errors: string[] = [];
+    const formErrors = this.contraventionForm.errors;
+
+    if (formErrors) {
+      if (formErrors['futureDate']) {
+        errors.push('• Data verbale non può essere futura');
+      }
+      if (formErrors['dataNotificaBeforeVerbale']) {
+        errors.push('• Data notifica deve essere >= data verbale');
+      }
+      if (formErrors['dataSpedizioneInvalid']) {
+        errors.push('• Data spedizione al finanziario deve essere > data notifica');
+      }
+      if (formErrors['dataPagamentoInvalid']) {
+        errors.push('• Data pagamento verbale deve essere >= data notifica (quando stato = pagato)');
+      }
+      if (formErrors['pagataDeveEssereAzienda']) {
+        errors.push('• Pagata deve essere "Azienda" quando data spedizione al finanziario è presente');
+      }
+      if (formErrors['pagataDeveEssereDipendente']) {
+        errors.push('• Pagata deve essere "Dipendente" quando data spedizione al finanziario non è presente');
+      }
+      if (formErrors['ricorsoRequiresContestata']) {
+        errors.push('• Ricorso richiede stato verbale = "contestato"');
+      }
+      if (formErrors['dataInvioRicorsoInvalid']) {
+        errors.push('• Data invio ricorso deve essere > data notifica');
+      }
+      if (formErrors['dataInvioDecurtazioneInvalid']) {
+        errors.push('• Data invio decurtazione deve essere > data notifica');
+      }
+      if (formErrors['trattenutaRequiresAzienda']) {
+        errors.push('• Trattenuta su cedolino richiede pagata = "Azienda"');
+      }
+    }
+
+    // Vérifier les erreurs des champs individuels
+    if (this.contraventionForm.get('dataVerbale')?.errors?.['futureDate']) {
+      if (!errors.includes('• Data verbale non può essere futura')) {
+        errors.push('• Data verbale non può essere futura');
+      }
+    }
+
+    return errors;
   }
 
   // Getters pour faciliter l'accès aux contrôles
