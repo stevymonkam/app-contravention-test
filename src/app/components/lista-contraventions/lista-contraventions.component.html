@@ -49,10 +49,10 @@
         <button class="btn btn-primary btn-lg btn-block" (click)="goToDashboard()" style="background-color: #9dc4e7; border: none;"> Nuova </button>
       </div>
       <div class="col-md-12 mt-3">
-        <button class="btn btn-primary btn-lg btn-block" style="background-color: #fed967; border: none;"> Segnalazioni </button>
+        <button *ngIf="false" class="btn btn-primary btn-lg btn-block" style="background-color: #fed967; border: none;"> Segnalazioni </button>
       </div>
       <div class="col-md-12 mt-3">
-        <button class="btn btn-primary btn-lg btn-block" style="background-color: #ecb38e; border: none;"> Interrogazioni </button>
+        <button  *ngIf="false" class="btn btn-primary btn-lg btn-block" style="background-color: #ecb38e; border: none;"> Interrogazioni </button>
       </div>
     </div>
 
@@ -110,53 +110,36 @@
         </ng-container>
 
         <!-- Numero Verbale Column -->
-        <ng-container matColumnDef="numeroVerbale">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Numero Verbale </th>
-          <td mat-cell *matCellDef="let element; let i = index;"> {{element.numeroVerbale}} </td>
-        </ng-container>
-
-        <!-- Data Verbale Column -->
         <ng-container matColumnDef="dataVerbale">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data Verbale </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> data Verbale </th>
           <td mat-cell *matCellDef="let element; let i = index;"> {{element.dataVerbale}} </td>
         </ng-container>
 
-        <!-- Stato Verbale Column -->
+        <!-- Data Verbale Column -->
         <ng-container matColumnDef="statoVerbale">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Stato </th>
-          <td mat-cell *matCellDef="let element; let i = index;"> {{element.statoVerbale}} </td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Stato Verbale </th>
+          <td mat-cell *matCellDef="let element; let i = index;"> {{element.statoVerbale.stato}} </td>
         </ng-container>
 
-        <!-- Data Notifica Column -->
+        <!-- Stato Verbale Column -->
         <ng-container matColumnDef="dataNotifica">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Data Notifica </th>
           <td mat-cell *matCellDef="let element; let i = index;"> {{element.dataNotifica}} </td>
         </ng-container>
 
         <!-- Giorni Scadenza Column -->
-        <ng-container matColumnDef="giorniScadenza">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Giorni Scadenza </th>
-          <td mat-cell *matCellDef="let element; let i = index;"> {{element.giorniScadenza}} </td>
+        <ng-container matColumnDef="nominativoGuidatore">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Guidatore </th>
+          <td mat-cell *matCellDef="let element; let i = index;"> {{element.guidatore}} </td>
         </ng-container>
 
         <!-- Importo Column -->
-        <ng-container matColumnDef="importo">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Importo </th>
-          <td mat-cell *matCellDef="let element; let i = index;"> {{element.importo}} </td>
+        <ng-container matColumnDef="dataRicorso">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Data Ricorso </th>
+          <td mat-cell *matCellDef="let element; let i = index;"> {{element.dataInvioRicorso}} </td>
         </ng-container>
 
-        <!-- Nominativo Guidatore Column -->
-        <ng-container matColumnDef="nominativoGuidatore">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Guidatore </th>
-          <td mat-cell *matCellDef="let element; let i = index;"> {{element.nominativoGuidatore}} </td>
-        </ng-container>
-
-        <!-- Pagata Column -->
-        <ng-container matColumnDef="pagata">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Pagata </th>
-          <td mat-cell *matCellDef="let element; let i = index;"> {{element.pagata}} </td>
-        </ng-container>
-
+       
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row [ngClass]="{'make-gold': i%2==0 }" *matRowDef="let row; columns: displayedColumns; let i = index" (click)="editContravention(row)" style="cursor: pointer;"></tr>
         </table>

@@ -193,7 +193,7 @@
       
       <input type="file" id="fileInput" multiple (change)="onFileSelected($event)" style="display: none;">
       
-      <table >
+      <table>
         <thead>
           <tr>
             <th class="checkbox-cell"></th>
@@ -206,11 +206,16 @@
         </thead>
         <tbody>
           <tr *ngFor="let file of uploadedFiles; let i = index">
-            <td class="checkbox-cell"><input type="checkbox"></td>
+            <td class="checkbox-cell">
+              <input 
+                type="checkbox" 
+                [checked]="selectedFileIndices.has(i)"
+                (change)="onFileCheckboxChange(i, $event)">
+            </td>
             <td>{{ file.tipo || '-' }}</td>
             <td>{{ file.numVerbale || contraventionNumVerbale || '-' }}</td>
             <td>{{ file.note || '-' }}</td>
-            <td><a href="javascript:void(0)" class="link-button">{{ file.elemento || file.testo1 || 'Documento' }}</a></td>
+            <td>{{file.testo1 || file.elemento || '-'}}</td>
             <td><span class="view-icon">👁️</span> Guarda</td>
           </tr>
         </tbody>
@@ -219,7 +224,12 @@
     
     <!-- Action Buttons -->
     <div class="action-buttons">
-      <button type="button" >Cancella</button>
+      <button 
+        type="button" 
+        (click)="removeSelectedFiles()" 
+        [disabled]="selectedFileIndices.size === 0">
+        Cancella
+      </button>
       <button type="button" (click)="onPrint()">Stampa</button>
       <button type="button">Invia</button>
     </div>

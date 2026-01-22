@@ -48,8 +48,65 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
 
 
   // Mettre à jour une contravention
-  updateContravention(numVerbale: string, contravention: Contravention): Observable<Contravention> {
+  /*updateContravention1(numVerbale: string, contravention: Contravention): Observable<Contravention> {
     return this.http.put<Contravention>(`${this.apiUrl}/${numVerbale}`, contravention, { headers: this.getHeaders() });
+  }*/
+
+
+  updateContravention(
+    numVerbale: string,
+    contravention: Contravention, 
+    files: File[], 
+    filesMetadata: FileMetadata[]
+  ): Observable<any> {
+    const formData = new FormData();
+    
+    // Ajouter les données de la contravention
+    formData.append('contravention', JSON.stringify(contravention));
+    console.log("je suis dans submitContravention le neauveau 2222222");
+    console.log(contravention);
+    console.log(formData);
+    console.log("je suis dans submitContravention le neauveau 2222222 filesMetadata");
+    console.log(filesMetadata);
+    console.log("je suis dans submitContravention le neauveau 2222222 files");
+    console.log(files);
+
+    // Ajouter les fichiers
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    
+    // Ajouter les métadonnées des fichiers
+    formData.append('filesMetadata', JSON.stringify(filesMetadata));
+
+    console.log("je suis dans submitContravention le neauveau 3333333");
+    // TypeScript's FormData.entries() is not always recognized, so we use a workaround for logging
+    // @ts-ignore
+    if (typeof formData.forEach === 'function') {
+      // forEach is available in modern browsers
+      // @ts-ignore
+      formData.forEach((value, key) => {
+        console.log(`${key}:`, value);
+      });
+    } else {
+      // fallback: try to use entries if available
+      // @ts-ignore
+      if (typeof formData.entries === 'function') {
+        // @ts-ignore
+        for (const pair of formData.entries()) {
+          console.log(`${pair[0]}:`, pair[1]);
+        }
+      } else {
+        console.log('Cannot iterate FormData entries in this environment.');
+      }
+    }
+
+    const token = localStorage.getItem("token");
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+  
+    return this.http.put(`${this.apiUrl}/${numVerbale}/with-files`, formData, { headers: headers });
   }
 
   // Récupérer une contravention par numVerbale
@@ -68,10 +125,12 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
   }
 
   // Upload d'un fichier pour une contravention
-  uploadFile(numVerbale: string, file: File, tipo: string, note?: string): Observable<HttpEvent<any>> {
+  uploadFile(numVerbale: string, file: File, tipo: string, note?: string, guidatore?: string | undefined, targa?: string | undefined): Observable<HttpEvent<any>> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tipo', tipo);
+    formData.append('guidatore', guidatore || '');
+    formData.append('targa', targa || '');
     if (note) {
       formData.append('note', note);
     }

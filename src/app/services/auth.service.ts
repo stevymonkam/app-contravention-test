@@ -18,7 +18,7 @@ export class AuthService {
 
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USERNAME_KEY = 'username';
- // private api_url = 'http://192.168.3.49:8080/api';
+  //private api_url = 'http://192.168.3.49:8080/api';
   private api_url = 'http://localhost:8080/api';
 
   constructor(

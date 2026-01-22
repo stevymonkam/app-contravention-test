@@ -30,6 +30,7 @@ export class ContraventionComponent implements OnInit {
   uploadProgress = 0;
   contraventionNumVerbale: any;
   isEditMode = false;
+  selectedFileIndices: Set<number> = new Set();
   
 
   // Options pour les dropdowns (si nécessaire)
@@ -70,44 +71,46 @@ export class ContraventionComponent implements OnInit {
     console.log('loadContraventionData appelée avec numVerbale:', numVerbale);
     this.isLoading = true;
     this.contraventionService.getContraventionWithFiles(numVerbale).subscribe({
-      next: (contravention: Contravention) => {
+      next: (contravention: any) => {
         console.log('Contravention chargée depuis le serveur:', contravention);
+        console.log('provaaaaaaaaaaaaaa:', contravention.contravention.numVerbale);
+
         console.log('Formulaire avant patchValue:', this.contraventionForm.value);
         
         this.contraventionForm.patchValue({
-          numVerbale: contravention.numVerbale,
-          targa: contravention.targa,
-          guidatore: contravention.guidatore,
-          emailGuidatore: contravention.emailGuidatore,
-          societaIntestataria: contravention.societaIntestataria,
-          dataVerbale: contravention.dataVerbale,
-          dataNotifica: contravention.dataNotifica,
-          comuneVerbale: contravention.comuneVerbale,
-          sedeNotifica: contravention.sedeNotifica,
-          ggScadenza: contravention.ggScadenza,
-          importo: contravention.importo,
-          importoIntegrato: contravention.importoIntegrato,
-          numVerbaleCorrelato: contravention.numVerbaleCorrelato,
-          dataSpediziFinanz: contravention.dataSpediziFinanz,
-          dataPagamentoVerb: contravention.dataPagamentoVerb,
-          pagatoAziendaDipendente: contravention.pagatoAziendaDipendente,
-          ricorso: contravention.ricorso,
-          ggRicorso: contravention.ggRicorso,
-          dataInvioRicorso: contravention.dataInvioRicorso,
-          decurtaPunti: contravention.decurtaPunti,
-          dataInvioDecurtazione: contravention.dataInvioDecurtazione,
-          mmyyyyTrattenutaCedolino: contravention.mmyyyyTrattenutaCedolino,
-          mmyyyyTrattenutaDiffMultaCedolino: contravention.mmyyyyTrattenutaDiffMultaCedolino,
-          idStatoPratica: contravention.idStatoPratica,
-          exSocietaIntestataria: contravention.exSocietaIntestataria,
-          note: contravention.note
+          numVerbale: contravention.contravention.numVerbale,
+          targa: contravention.contravention.targa,
+          guidatore: contravention.contravention.guidatore,
+          emailGuidatore: contravention.contravention.emailGuidatore,
+          societaIntestataria: contravention.contravention.societaIntestataria,
+          dataVerbale: contravention.contravention.dataVerbale,
+          dataNotifica: contravention.contravention.dataNotifica,
+          comuneVerbale: contravention.contravention.comuneVerbale,
+          sedeNotifica: contravention.contravention.sedeNotifica,
+          ggScadenza: contravention.contravention.ggScadenza,
+          importo: contravention.contravention.importo,
+          importoIntegrato: contravention.contravention.importoIntegrato,
+          numVerbaleCorrelato: contravention.contravention.numVerbaleCorrelato,
+          dataSpediziFinanz: contravention.contravention.dataSpediziFinanz,
+          dataPagamentoVerb: contravention.contravention.dataPagamentoVerb,
+          pagatoAziendaDipendente: contravention.contravention.pagatoAziendaDipendente,
+          ricorso: contravention.contravention.ricorso,
+          ggRicorso: contravention.contravention.ggRicorso,
+          dataInvioRicorso: contravention.contravention.dataInvioRicorso,
+          decurtaPunti: contravention.contravention.decurtaPunti,
+          dataInvioDecurtazione: contravention.contravention.dataInvioDecurtazione,
+          mmyyyyTrattenutaCedolino: contravention.contravention.mmyyyyTrattenutaCedolino,
+          mmyyyyTrattenutaDiffMultaCedolino: contravention.contravention.mmyyyyTrattenutaDiffMultaCedolino,
+          idStatoPratica: contravention.contravention.idStatoPratica,
+          exSocietaIntestataria: contravention.contravention.exSocietaIntestataria,
+          note: contravention.contravention.note
         });
         
         console.log('Formulaire après patchValue:', this.contraventionForm.value);
         
         // Charger les fichiers associés
-        if (contravention.files && contravention.files.length > 0) {
-          this.uploadedFiles = contravention.files;
+        if (contravention.contravention.files && contravention.contravention.files.length > 0) {
+          this.uploadedFiles = contravention.contravention.files;
           console.log('Fichiers chargés:', this.uploadedFiles);
         }
         
@@ -167,16 +170,23 @@ export class ContraventionComponent implements OnInit {
   // Méthode pour déclencher le clic sur l'input file
   triggerFileInput(): void {
     const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+    console.log("11111111111111111 triggerFileInput  1111111111111");
+
     if (fileInput) {
       fileInput.click();
+      console.log("2222222222222222222 triggerFileInput  22222222222222");
+
     }
   }
 
   onFileSelected(event: any): void {
     const files = event.target.files;
+    console.log("3333333333333333  event  3333333333333333333");
     if (files) {
       for (let i = 0; i < files.length; i++) {
         this.selectedFiles.push(files[i]);
+        console.log("3333333333333333  +files[i]+"+files[i]+"  3333333333333333333");
+
       }
     }
   }
@@ -186,6 +196,9 @@ export class ContraventionComponent implements OnInit {
       this.showMessage('Veuillez sélectionner au moins un fichier', 'error');
       return;
     }
+
+    console.log("11111111111111111 uploadFiles:", this.uploadedFiles);
+
 
     const elemento = this.fileUploadForm.get('elemento')?.value;
     const tipo = this.fileUploadForm.get('tipo')?.value;
@@ -212,8 +225,10 @@ export class ContraventionComponent implements OnInit {
     });
 
     // Réinitialiser la sélection
+    console.log("22222222222222222 uploadedFiles:", this.uploadedFiles);
     this.selectedFiles = [];
     this.fileUploadForm.reset();
+    this.resetFileInput();
     this.showMessage('Fichiers ajoutés avec succès', 'success');
   }
 
@@ -243,8 +258,95 @@ export class ContraventionComponent implements OnInit {
     }
   }
 
+  // Gestion des checkbox pour sélection multiple
+  onFileCheckboxChange(index: number, event: any): void {
+    if (event.target.checked) {
+      this.selectedFileIndices.add(index);
+    } else {
+      this.selectedFileIndices.delete(index);
+    }
+    console.log('Fichiers sélectionnés:', Array.from(this.selectedFileIndices));
+  }
+
+  resetFileInput(): void {
+    console.log('🔄 resetFileInput appelée');
+    
+    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+    
+    if (fileInput) {
+      fileInput.value = ''; // ✅ Vide la valeur
+      console.log('✅ Input file value réinitialisée');
+    } else {
+      console.error('❌ Input file non trouvé!');
+    }
+    
+    this.selectedFiles = []; // ✅ Vide le tableau
+    console.log('✅ selectedFiles vidé');
+  }
+
+  // Suppression des fichiers sélectionnés
+  removeSelectedFiles(): void {
+    if (this.selectedFileIndices.size === 0) {
+      this.showMessage('Aucun fichier sélectionné', 'error');
+      return;
+    }
+
+    if (confirm(`Êtes-vous sûr de vouloir supprimer ${this.selectedFileIndices.size} fichier(s)?`)) {
+      // Trier en ordre décroissant pour éviter les problèmes d'index
+      const indices = Array.from(this.selectedFileIndices).sort((a, b) => b - a);
+      
+      let deletedCount = 0;
+      let errorCount = 0;
+      const totalToDelete = indices.length;
+
+      indices.forEach(index => {
+        const fileToRemove = this.uploadedFiles[index];
+        console.log("9090909090  fileToRemove:"+fileToRemove+"    9090909090");
+        console.log("9090909090  index:"+fileToRemove.id+"    9090909090");
+        // Si le fichier a un ID, le supprimer du serveur
+        if (fileToRemove.id && this.contraventionNumVerbale) {
+          this.contraventionService.deleteFile(this.contraventionNumVerbale, fileToRemove.id)
+            .subscribe({
+              next: () => {
+                console.log('Fichier supprimé du serveur:', fileToRemove.testo1);
+                this.uploadedFiles.splice(index, 1);
+                deletedCount++;
+                
+                if (deletedCount + errorCount === totalToDelete) {
+                  this.selectedFileIndices.clear();
+                  this.resetFileInput();
+                  this.showMessage(`${deletedCount} fichier(s) supprimé(s) avec succès`, 'success');
+                }
+              },
+              error: (error: any) => {
+                console.error('Erreur lors de la suppression:', error);
+                errorCount++;
+                
+                if (deletedCount + errorCount === totalToDelete) {
+                  this.selectedFileIndices.clear();
+                  this.resetFileInput();
+                  this.showMessage(`${deletedCount} fichier(s) supprimé(s), ${errorCount} erreur(s)`, 'error');
+                }
+              }
+            });
+        } else {
+          // Fichier pas encore uploadé, juste le retirer de la liste
+          this.uploadedFiles.splice(index, 1);
+          deletedCount++;
+        }
+      });
+
+      // Si tous les fichiers étaient locaux (pas encore uploadés)
+      if (indices.every(i => !this.uploadedFiles[i]?.id)) {
+        this.selectedFileIndices.clear();
+        this.resetFileInput();
+        this.showMessage(`${deletedCount} fichier(s) retiré(s) de la liste`, 'success');
+      }
+    }
+  }
+
   // Méthode pour uploader les fichiers en mode édition
-  uploadFilesInEditMode(numVerbale: string, files: FileContrevention[]): void {
+  uploadFilesInEditMode(numVerbale: string, files: FileContrevention[], guidatore: string | undefined, targa: string | undefined): void {
     let uploadedCount = 0;
     let errorCount = 0;
     const totalFiles = files.length;
@@ -256,11 +358,13 @@ export class ContraventionComponent implements OnInit {
         const tipo = allegato.tipo || '';
         const note = allegato.note;
 
-        console.log("Fichier à uploader:", allegato.file);
+        console.log("Fichier à uploader:", allegato);
+        console.log("guidatore:", guidatore);
+        console.log("targa:", targa);
         
         console.log(`Upload du fichier ${index + 1}/${totalFiles}:`, allegato.elemento);
 
-        this.contraventionService.uploadFile(numVerbale, allegato.file, tipo, note)
+        this.contraventionService.uploadFile(numVerbale, allegato.file, tipo, note, guidatore, targa)
           .subscribe({
             next: (event: HttpEvent<any>) => {
               if (event.type === HttpEventType.Response) {
@@ -398,26 +502,40 @@ export class ContraventionComponent implements OnInit {
       if (this.isEditMode && this.contraventionNumVerbale) {
         console.log("Mode édition - Mise à jour de la contravention numVerbale:", this.contraventionNumVerbale);
         console.log("Données de la contravention:", contraventionData);
+
+        console.log("EEEEEEEEEEEEEDDDDDDDDDDDDDDDDDDDIIIIIIIIIITTTTTTTTTT ");
+        console.log("uploadedFiles:", this.uploadedFiles);
+        // Préparer les fichiers pour l'envoi
+        const files: File[] = this.uploadedFiles
+          .filter(allegato => allegato.file)
+          .map(allegato => allegato.file!);
+    
+        // Préparer les métadonnées des fichiers selon la nouvelle structure
+        const filesMetadata: FileMetadata[] = this.uploadedFiles
+          .filter(allegato => allegato.file)
+          .map(allegato => ({
+            tipo: allegato.tipo ?? 'ALTRO',
+            numeroVerbale: this.contraventionForm.get('numeroVerbale')?.value || undefined,
+            note: allegato.note || undefined
+          }));
+    
+        console.log("Données de la contravention EDITTTT: ", contraventionData);
+        console.log("Fichiers EDITTTT: ", files);
+        console.log("Métadonnées des fichiers EDITTTT: ", filesMetadata);
+
+         
         
-        this.contraventionService.updateContravention(this.contraventionNumVerbale, contraventionData)
+        this.contraventionService.updateContravention(this.contraventionNumVerbale, contraventionData, files, filesMetadata)
           .subscribe({
             next: (response: Contravention) => {
               console.log("Réponse du serveur:", response);
-              
-              // Vérifier s'il y a de nouveaux fichiers à uploader
-              const newFiles = this.uploadedFiles.filter(allegato => allegato.file);
-              
-              if (newFiles.length > 0) {
-                console.log("Upload de", newFiles.length, "nouveaux fichiers en mode édition");
-                this.uploadFilesInEditMode(this.contraventionNumVerbale!, newFiles);
-              } else {
-                this.isLoading = false;
+               this.isLoading = false;
                 this.showMessage('Contravention mise à jour avec succès', 'success');
                 // Retourner à la liste après 1 seconde
                 setTimeout(() => {
                   this.router.navigate(['/lista-contraventions']);
                 }, 1000);
-              }
+              
             },
             error: (error: any) => {    
               console.error("Erreur:", error);
@@ -472,8 +590,30 @@ export class ContraventionComponent implements OnInit {
   
   
 
+
+
   onCancel(): void {
-    this.resetForm();
+    if (this.isEditMode && this.contraventionNumVerbale) {
+      // Demander confirmation avant de supprimer
+      if (confirm('Sei sicuro di voler eliminare questa contravvenzione?')) {
+        this.contraventionService.deleteContravention(this.contraventionNumVerbale)
+          .subscribe(
+            () => {
+              console.log('Contravention supprimée avec succès');
+              alert('Contravvenzione eliminata con successo!');
+              this.router.navigate(['/contraventions']); // Rediriger vers la liste
+            },
+            (error) => {
+              console.error('Erreur lors de la suppression:', error);
+              alert('Errore durante l\'eliminazione della contravvenzione');
+            }
+          );
+      }
+    } else {
+      // Si on n'est pas en mode édition, juste réinitialiser le formulaire
+      this.resetForm();
+      //this.router.navigate(['/contraventions']); // Ou rediriger
+    }
   }
 
   onPrint(): void {

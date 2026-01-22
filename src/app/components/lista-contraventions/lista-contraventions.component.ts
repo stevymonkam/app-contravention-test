@@ -32,14 +32,12 @@ export class ListaContraventionsComponent implements OnInit {
   displayedColumns: string[] = [
     'targa',
     'societaIntestataria',
-    'numeroVerbale',
     'dataVerbale',
     'statoVerbale',
     'dataNotifica',
-    'giorniScadenza',
-    'importo',
     'nominativoGuidatore',
-    'pagata'
+    'dataRicorso',
+    
   ];
 
   displayedColumnstipo: string[] = [
