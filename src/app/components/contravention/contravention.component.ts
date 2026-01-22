@@ -7,7 +7,7 @@ import { Contravention, FileContrevention } from '../../models/contratto.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 
-// modiffront BRANCH
+// modiffront release 1.0.0
 // Interface pour les métadonnées des fichiers (à ajouter au début du fichier)
 interface FileMetadata {
   tipo: string;
