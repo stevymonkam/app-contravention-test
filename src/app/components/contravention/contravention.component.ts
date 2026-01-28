@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ContraventionService } from '../../services/contravention.service';
-import { Contravention, FileContrevention } from '../../models/contratto.model';
+import { Compagnia, Contravention, FileContrevention, TipoDoc } from '../../models/contratto.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpEvent, HttpEventType } from '@angular/common/http';
 
@@ -22,7 +22,8 @@ class ContraventionValidators {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) return null;
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setHours(23, 59, 59, 999);
+      //today.setHours(0, 0, 0, 0);
       const dataVerbale = new Date(control.value);
       return dataVerbale > today ? { futureDate: true } : null;
     };
@@ -107,6 +108,11 @@ class ContraventionValidators {
     const dataNotifica = form.get('dataNotifica')?.value;
     const dataInvioRicorso = form.get('dataInvioRicorso')?.value;
     
+    // OBLIGATOIRE si ricorso = true
+    if (ricorso === true && !dataInvioRicorso) {
+      return { dataInvioRicorsoRequired: true };
+    }
+    
     if (!ricorso || statoVerbale !== '3' || !dataNotifica || !dataInvioRicorso) return null;
     
     const dateNotifica = new Date(dataNotifica);
@@ -121,6 +127,11 @@ class ContraventionValidators {
     const dataNotifica = form.get('dataNotifica')?.value;
     const dataInvioDecurtazione = form.get('dataInvioDecurtazione')?.value;
     
+    // OBLIGATOIRE si decurtaPunti = true
+    if (decurtaPunti === true && !dataInvioDecurtazione) {
+      return { dataInvioDecurtazioneRequired: true };
+    }
+    
     if (!decurtaPunti || !dataNotifica || !dataInvioDecurtazione) return null;
     
     const dateNotifica = new Date(dataNotifica);
@@ -133,6 +144,11 @@ class ContraventionValidators {
   static trattenutaCedulinoValid(form: FormGroup): ValidationErrors | null {
     const pagata = form.get('pagatoAziendaDipendente')?.value;
     const trattenuta = form.get('mmyyyyTrattenutaCedolino')?.value;
+    
+    // OBLIGATOIRE si pagata = Azienda (true)
+    if (pagata === true && !trattenuta) {
+      return { trattenutaCedulinoRequired: true };
+    }
     
     if (trattenuta && pagata !== true) {
       return { trattenutaRequiresAzienda: true };
@@ -154,8 +170,12 @@ export class ContraventionComponent implements OnInit {
   uploadedFiles2: any[] = [];
   selectedFiles: File[] = [];
   fileUploadForm!: FormGroup;
+  compagnie: Compagnia[] = [];
+  isLoadingCompagnie = false;
   isLoading = false;
   uploadProgress = 0;
+  tipoDocList: TipoDoc[] = [];
+  isLoadingTipoDoc = false;
   contraventionNumVerbale: any;
   isEditMode = false;
   selectedFileIndices: Set<number> = new Set();
@@ -182,6 +202,18 @@ export class ContraventionComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('ngOnInit appelé');
+    this.loadCompagnie();
+    this.loadTipoDoc();
+    // Convertir automatiquement la targa en majuscules en temps réel
+    this.contraventionForm.get('targa')?.valueChanges.subscribe(value => {
+      if (value && typeof value === 'string') {
+        const upperValue = value.toUpperCase();
+        if (value !== upperValue) {
+          this.contraventionForm.get('targa')?.setValue(upperValue, { emitEvent: false });
+        }
+      }
+    });
+    
     // Vérifier si on est en mode édition
     this.route.params.subscribe(params => {
       console.log('Params reçus:', params);
@@ -264,18 +296,18 @@ export class ContraventionComponent implements OnInit {
     // Formulaire principal de contravention
     this.contraventionForm = this.fb.group({
       numVerbale: ['', Validators.required],
-      targa: [''],
-      guidatore: [''],
-      emailGuidatore: [''],
-      societaIntestataria: [''],
-      dataVerbale: ['', ContraventionValidators.dataVerbaleNotFuture()],
-      dataNotifica: [''],
-      comuneVerbale: [''],
-      sedeNotifica: [''],
-      ggScadenza: [''],
-      importo: [''],
-      importoIntegrato: [''],
-      numVerbaleCorrelato: [''],
+      targa: ['', Validators.required], // Obligatoire et bloquant
+      guidatore: [''], // Non obligatoire
+      emailGuidatore: [''], // Non obligatoire
+      societaIntestataria: ['', Validators.required], // Obligatoire et bloquant
+      dataVerbale: ['', [Validators.required, ContraventionValidators.dataVerbaleNotFuture()]], // Obligatoire et bloquant
+      dataNotifica: ['', Validators.required], // Obligatoire et bloquant
+      comuneVerbale: [''], // Non obligatoire
+      sedeNotifica: [''], // Non obligatoire
+      ggScadenza: ['', Validators.required], // Obligatoire et bloquant
+      importo: [''], // Non obligatoire
+      importoIntegrato: [''], // Non obligatoire
+      numVerbaleCorrelato: [''], // Non obligatoire
       dataSpediziFinanz: [''],
       dataPagamentoVerb: [''],
       pagatoAziendaDipendente: [false],
@@ -286,7 +318,7 @@ export class ContraventionComponent implements OnInit {
       dataInvioDecurtazione: [''],
       mmyyyyTrattenutaCedolino: [''],
       mmyyyyTrattenutaDiffMultaCedolino: [''],
-      idStatoPratica: [''],
+      idStatoPratica: ['', Validators.required], // Obligatoire et bloquant (Stato verbale)
       exSocietaIntestataria: [''],
       note: ['']
     }, {
@@ -308,7 +340,7 @@ export class ContraventionComponent implements OnInit {
     // Formulaire pour l'upload de fichiers
     this.fileUploadForm = this.fb.group({
       elemento: [''],
-      tipo: [''],
+      tipo: ['', Validators.required], // ✅ Obligatoire pour l'upload
       data: [''],
       testo1: [''],
       testo2: [''],
@@ -411,6 +443,17 @@ export class ContraventionComponent implements OnInit {
   uploadFiles(): void {
     if (this.selectedFiles.length === 0) {
       this.showMessage('Veuillez sélectionner au moins un fichier', 'error');
+      return;
+    }
+
+    // ✅ Validation OBLIGATOIRE du champ "tipo"
+    if (this.fileUploadForm.invalid) {
+      this.fileUploadForm.markAllAsTouched();
+      if (!this.fileUploadForm.get('tipo')?.value) {
+        this.showMessage('Il campo "Tipo" è obbligatorio per aggiungere un file', 'error');
+        return;
+      }
+      this.showMessage('Compilare tutti i campi obbligatori', 'error');
       return;
     }
 
@@ -730,6 +773,11 @@ export class ContraventionComponent implements OnInit {
         decurtazionePunti: this.contraventionForm.get('decurtazionePunti')?.value
       };
       
+      // Convertir la targa en majuscules avant l'envoi au backend
+      if (contraventionData.targa) {
+        contraventionData.targa = contraventionData.targa.toUpperCase();
+      }
+      
       // Mode édition : mettre à jour
       if (this.isEditMode && this.contraventionNumVerbale) {
         console.log("Mode édition - Mise à jour de la contravention numVerbale:", this.contraventionNumVerbale);
@@ -821,6 +869,33 @@ export class ContraventionComponent implements OnInit {
   }
   
   
+  loadCompagnie(): void {
+    this.isLoadingCompagnie = true;
+    this.contraventionService.getAllCompagnie().subscribe({
+      next: (data) => {
+        this.compagnie = data;
+        this.isLoadingCompagnie = false;
+      },
+      error: (error) => {
+        console.error('Errore nel caricamento delle compagnie:', error);
+        this.isLoadingCompagnie = false;
+      }
+    });
+  }
+
+  loadTipoDoc(): void {
+    this.isLoadingTipoDoc = true;
+    this.contraventionService.getAllTipoDoc().subscribe({
+      next: (data) => {
+        this.tipoDocList = data;
+        this.isLoadingTipoDoc = false;
+      },
+      error: (error) => {
+        console.error('Errore nel caricamento dei tipo doc:', error);
+        this.isLoadingTipoDoc = false;
+      }
+    });
+  }
 
 
 
@@ -857,6 +932,18 @@ export class ContraventionComponent implements OnInit {
 
   backToList(): void {
     this.router.navigate(['/lista-contraventions']);
+  }
+
+  goHome(): void {
+    this.router.navigate(['/lista-contraventions']);
+  }
+
+  goToNewContravention(): void {
+    this.router.navigate(['/contraventions']);
+    // Réinitialiser le formulaire pour une nouvelle contravention
+    this.contraventionNumVerbale = null;
+    this.isEditMode = false;
+    this.resetForm();
   }
 
   private resetForm(): void {
@@ -910,11 +997,20 @@ export class ContraventionComponent implements OnInit {
       if (formErrors['ricorsoRequiresContestata']) {
         errors.push('• Ricorso richiede stato verbale = "contestato"');
       }
+      if (formErrors['dataInvioRicorsoRequired']) {
+        errors.push('• Data invio ricorso è obbligatoria quando "Ricorso" è selezionato');
+      }
       if (formErrors['dataInvioRicorsoInvalid']) {
         errors.push('• Data invio ricorso deve essere > data notifica');
       }
+      if (formErrors['dataInvioDecurtazioneRequired']) {
+        errors.push('• Data invio decurtazione è obbligatoria quando "Decurtazione punti" è selezionato');
+      }
       if (formErrors['dataInvioDecurtazioneInvalid']) {
         errors.push('• Data invio decurtazione deve essere > data notifica');
+      }
+      if (formErrors['trattenutaCedulinoRequired']) {
+        errors.push('• Trattenuta su cedolino è obbligatoria quando pagata da "Azienda"');
       }
       if (formErrors['trattenutaRequiresAzienda']) {
         errors.push('• Trattenuta su cedolino richiede pagata = "Azienda"');
@@ -926,6 +1022,29 @@ export class ContraventionComponent implements OnInit {
       if (!errors.includes('• Data verbale non può essere futura')) {
         errors.push('• Data verbale non può essere futura');
       }
+    }
+    
+    // Vérifier les champs obligatoires
+    if (this.contraventionForm.get('targa')?.errors?.['required']) {
+      errors.push('• Targa è obbligatoria');
+    }
+    if (this.contraventionForm.get('societaIntestataria')?.errors?.['required']) {
+      errors.push('• Società Intestataria è obbligatoria');
+    }
+    if (this.contraventionForm.get('numVerbale')?.errors?.['required']) {
+      errors.push('• Numero Verbale è obbligatorio');
+    }
+    if (this.contraventionForm.get('dataVerbale')?.errors?.['required']) {
+      errors.push('• Data Verbale è obbligatoria');
+    }
+    if (this.contraventionForm.get('dataNotifica')?.errors?.['required']) {
+      errors.push('• Data Notifica è obbligatoria');
+    }
+    if (this.contraventionForm.get('ggScadenza')?.errors?.['required']) {
+      errors.push('• Giorni alla scadenza è obbligatorio');
+    }
+    if (this.contraventionForm.get('idStatoPratica')?.errors?.['required']) {
+      errors.push('• Stato Verbale è obbligatorio');
     }
 
     return errors;

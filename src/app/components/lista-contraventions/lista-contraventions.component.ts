@@ -13,6 +13,9 @@ import {
   MatPaginator
 } from '@angular/material/paginator';
 import {
+  MatSnackBar
+} from '@angular/material/snack-bar';
+import {
   Router
 } from '@angular/router';
 import {
@@ -32,11 +35,11 @@ export class ListaContraventionsComponent implements OnInit {
   displayedColumns: string[] = [
     'targa',
     'societaIntestataria',
+    'numVerbale',
     'dataVerbale',
-    'statoVerbale',
     'dataNotifica',
     'nominativoGuidatore',
-    'dataRicorso',
+    'statoVerbale',
     
   ];
 
@@ -53,6 +56,7 @@ export class ListaContraventionsComponent implements OnInit {
   dataSource: MatTableDataSource<Contravention>;
   rows: Contravention[] = [];
   search: string = '';
+  selectedFilterField: string = ''; // Champ sélectionné pour le filtre
   flag_home: boolean = true;
   flag_segnali1: boolean = false;
   flag_segnali2: boolean = true;
@@ -65,7 +69,8 @@ export class ListaContraventionsComponent implements OnInit {
 
   constructor(
     private contraventionService: ContraventionService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     this.dataSource = new MatTableDataSource<Contravention>([]);
     this.loadTable();
@@ -110,39 +115,103 @@ export class ListaContraventionsComponent implements OnInit {
   }
 
   onChange(value: string): void {
-    console.log(value);
-    this.dataSource.filterPredicate = (data: Contravention, filter: string) => {
-      switch (value) {
-        case "": {
-          this.loadTable();
-          return true;
-        }
-        case "targa": {
-          return data.targa == filter;  
-        }
-        case "societaIntestataria": {
-          return data.societaIntestataria == filter;
-        }
-        case "numeroVerbale": {
-          return data.numVerbale == filter;
-        }
-        case "dataVerbale": {
-          return data.dataVerbale == filter;
-        }
-       default: {
-          console.log("Invalid choice");
-          return true;
-        }
-      }
-    };
+    console.log('Champ sélectionné pour le filtre:', value);
+    this.selectedFilterField = value;
+    
+    // Réinitialiser le filtre si aucun champ n'est sélectionné
+    if (!value || value === '') {
+      this.dataSource.filter = '';
+      this.search = '';
+    }
   }
 
   doFilter(): void {
-    if (this.search.length != 0) {
-      this.dataSource.filter = this.search.trim().toLocaleLowerCase();
-    } else {
-      this.loadTable();
+    console.log('doFilter appelé - Champ:', this.selectedFilterField, 'Valeur:', this.search);
+    
+    if (!this.search || this.search.trim().length === 0) {
+      // Si aucune valeur de recherche, afficher tout
+      this.dataSource.filter = '';
+      return;
     }
+
+    // Définir le filterPredicate en fonction du champ sélectionné
+    this.dataSource.filterPredicate = (data: Contravention, filter: string) => {
+      if (!filter) return true;
+      
+      const searchValue = filter.toLowerCase().trim();
+      
+      switch (this.selectedFilterField) {
+        case "targa": {
+          return (data.targa || '').toLowerCase().includes(searchValue);
+        }
+        case "societaIntestataria": {
+          return (data.societaIntestataria || '').toLowerCase().includes(searchValue);
+        }
+        case "numeroVerbale": {
+          return (data.numVerbale || '').toLowerCase().includes(searchValue);
+        }
+        case "dataVerbale": {
+          return (data.dataVerbale || '').toLowerCase().includes(searchValue);
+        }
+        case "": {
+          // Si aucun champ sélectionné, rechercher dans tous les champs
+          const allFields = [
+            data.targa,
+            data.societaIntestataria,
+            data.numVerbale,
+            data.dataVerbale,
+            data.guidatore
+          ].join(' ').toLowerCase();
+          return allFields.includes(searchValue);
+        }
+        default: {
+          // Par défaut, rechercher dans tous les champs
+          const allFields = [
+            data.targa,
+            data.societaIntestataria,
+            data.numVerbale,
+            data.dataVerbale,
+            data.guidatore
+          ].join(' ').toLowerCase();
+          return allFields.includes(searchValue);
+        }
+      }
+    };
+    
+    // Appliquer le filtre
+    this.dataSource.filter = this.search.trim().toLowerCase();
+    
+    // Vérifier si des résultats ont été trouvés
+    setTimeout(() => {
+      if (this.dataSource.filteredData.length === 0) {
+        this.showNoResultsMessage();
+      }
+    }, 100);
+  }
+
+  showNoResultsMessage(): void {
+    const fieldName = this.getFieldDisplayName(this.selectedFilterField);
+    const message = fieldName 
+      ? `Aucun résultat trouvé pour "${this.search}" dans le champ ${fieldName}`
+      : `Aucun résultat trouvé pour "${this.search}"`;
+    
+    this.snackBar.open(message, 'Fermer', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['snackbar-warning']
+    });
+  }
+
+  getFieldDisplayName(fieldValue: string): string {
+    const fieldNames: { [key: string]: string } = {
+      'targa': 'Targa',
+      'societaIntestataria': 'Società Intestataria',
+      'numeroVerbale': 'Numero Verbale',
+      'dataVerbale': 'Data Verbale',
+      'nominativoGuidatore': 'Nominativo Guidatore'
+    };
+    return fieldNames[fieldValue] || '';
   }
 
   goToDashboard(): void {
@@ -152,6 +221,21 @@ export class ListaContraventionsComponent implements OnInit {
   editContravention(contravention: Contravention): void {
     console.log('Navigation vers contravention:', contravention);
     this.router.navigate(['/contraventions', contravention.numVerbale]);
+  }
+
+  getStatoVerbaleLabel(idStatoPratica: number | string | undefined): string {
+    if (!idStatoPratica) return '-';
+    
+    const statoMap: { [key: string]: string } = {
+      '1': 'da pagare',
+      '2': 'pagato',
+      '3': 'contestato',
+      '4': 'sospeso in attesa ricevuta',
+      '5': 'sospeso in attesa di decurtaz punti',
+      '6': 'annullato'
+    };
+    
+    return statoMap[idStatoPratica.toString()] || idStatoPratica.toString();
   }
 
 }

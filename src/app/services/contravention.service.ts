@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEvent, HttpRequest, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Contravention, FileContrevention, AllegatoContravention } from '../models/contratto.model';
+import { Contravention, FileContrevention, AllegatoContravention, Compagnia, TipoDoc } from '../models/contratto.model';
 
 // Interface pour les métadonnées
 interface FileMetadata {
@@ -46,6 +46,15 @@ getAllContraventionsWithFiles(): Observable<Contravention[]> {
   return this.http.get<Contravention[]>(`${this.apiUrl}/all-with-files`, { headers: this.getHeaders() });
 }
 
+// Dans ton service
+getAllTipoDoc(): Observable<TipoDoc[]> {
+  return this.http.get<TipoDoc[]>(`${this.apiUrl}/tipo-doc`, { headers: this.getHeaders() });
+}
+
+// Dans ton service
+getAllCompagnie(): Observable<Compagnia[]> {
+  return this.http.get<Compagnia[]>(`${this.apiUrl}/compagnie`, { headers: this.getHeaders() });
+}
 
   // Mettre à jour une contravention
   /*updateContravention1(numVerbale: string, contravention: Contravention): Observable<Contravention> {

@@ -20,6 +20,17 @@ export interface Contratto {
   scadenze?: Scadenza[];
 }
 
+export interface Compagnia {
+  id?: number;
+  compagnia: string;
+}
+
+// models/tipo-doc.model.ts
+export interface TipoDoc {
+  id?: number;
+  tipoDoc: string;
+}
+
 export interface Allegato {
   id?: number;
   nomeFile: string;
