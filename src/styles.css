@@ -158,3 +158,23 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Snackbar Custom Styles */
+.snackbar-warning {
+  background-color: #ff9800 !important;
+  color: white !important;
+}
+
+.snackbar-warning .mat-simple-snackbar {
+  color: white !important;
+}
+
+.snackbar-warning .mat-simple-snack-bar-content {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.snackbar-warning button {
+  color: white !important;
+  font-weight: bold;
+}

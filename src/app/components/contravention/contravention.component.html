@@ -1,18 +1,36 @@
-<div class="container">
-  <form [formGroup]="contraventionForm" (ngSubmit)="onSubmit()">
-    <!-- Section supérieure - 6 colonnes -->
+<div style="display: flex; gap: 10px;">
+  <!-- Menu Vertical Gauche -->
+  <div class="sidebar-menu">
+    <button type="button" class="menu-item" (click)="goHome()">Home</button>
+    <button type="button" class="menu-item" (click)="goToNewContravention()">Nuova</button>
+    <button type="button" class="menu-item" (click)="onPrint()">Stampa</button>
+    <button type="button" class="menu-item">Mail</button>
+    <button type="button" class="menu-item">Aiuto</button>
+  </div>
+
+  <!-- Formulaire Principal -->
+  <div class="container" style="flex: 1;">
+    <form [formGroup]="contraventionForm" (ngSubmit)="onSubmit()">
+      <!-- Section supérieure - 6 colonnes -->
     <div class="grid-6-cols">
       <!-- Ligne 1 - Colonne 1 -->
       <div class="form-group">
-        <label>Targa</label>
+        <label>Targa <span style="color: red;">*</span></label>
         <input type="text" formControlName="targa" [readonly]="isFieldsLocked">
       </div>
       
       <!-- Ligne 1 - Colonne 2 -->
-      <div class="form-group">
-        <label>Società Intestataria</label>
-        <input type="text" formControlName="societaIntestataria">
+     <div class="form-group">
+        <label>Società Intestataria <span style="color: red;">*</span></label>
+        <select formControlName="societaIntestataria" [disabled]="isLoadingCompagnie">
+          <option value="">-- Seleziona --</option>
+          <option *ngFor="let comp of compagnie" [value]="comp.compagnia">
+            {{ comp.compagnia }}
+          </option>
+        </select>
+        <small *ngIf="isLoadingCompagnie" class="text-muted">Caricamento...</small>
       </div>
+      
       
       <!-- Ligne 1 - Colonne 3 -->
       <div class="form-group">
@@ -28,7 +46,7 @@
       
       <!-- Ligne 1 - Colonne 5 -->
       <div class="form-group">
-        <label>Stato Verbale</label>
+        <label>Stato Verbale <span style="color: red;">*</span></label>
         <select formControlName="idStatoPratica">
           <option value="">-- Seleziona --</option>
           <option value="1">da pagare</option>
@@ -43,19 +61,19 @@
      
       <!-- Ligne 1 - Colonne 6 (vide) -->
       <div class="form-group">
-        <label>Giorni alla scadenza</label>
+        <label>Giorni alla scadenza <span style="color: red;">*</span></label>
         <input type="number" formControlName="ggScadenza">
       </div>
       
       <!-- Ligne 2 - Colonne 1 -->
       <div class="form-group">
-        <label>Data Verbale</label>
+        <label>Data Verbale <span style="color: red;">*</span></label>
         <input type="date" formControlName="dataVerbale" [readonly]="isFieldsLocked">
       </div>
       
       <!-- Ligne 2 - Colonne 2 -->
       <div class="form-group">
-        <label>Numero Verbale</label>
+        <label>Numero Verbale <span style="color: red;">*</span></label>
         <input type="text" formControlName="numVerbale" [readonly]="isEditMode">
       </div>
       
@@ -67,7 +85,7 @@
       
       <!-- Ligne 2 - Colonne 4 -->
       <div class="form-group">
-        <label>Data Notifica</label>
+        <label>Data Notifica <span style="color: red;">*</span></label>
         <input type="date" formControlName="dataNotifica">
       </div>
       
@@ -79,7 +97,7 @@
       
       <!-- Ligne 2 - Colonne 6 -->
       <div class="form-group">
-        <label>Pagata</label>
+        <label>Pagata <span style="color: red;">*</span></label>
         <div class="radio-group">
           <label><input type="radio" formControlName="pagatoAziendaDipendente" [value]="false"> Dipend.</label>
           <label><input type="radio" formControlName="pagatoAziendaDipendente" [value]="true"> Azda</label>
@@ -178,12 +196,39 @@
     <!-- Section Attachments -->
     <div class="attachment-section" [formGroup]="fileUploadForm">
       <div class="attachment-controls">
-        <select formControlName="tipo">
-          <option value="">-- Seleziona --</option>
-          <option value="multa">multa</option>
-          <option value="ricevuta">ricevuta</option>
-          <option value="altro">altro</option>
-        </select>
+        <!--<div style="display: flex; flex-direction: column; gap: 4px;">
+          <select formControlName="tipo" [style.border-color]="fileUploadForm.get('tipo')?.invalid && fileUploadForm.get('tipo')?.touched ? 'red' : ''">
+            <option value="">-- Seleziona --</option>
+            <option value="multa">Multa</option>
+            <option value="ricevuta">Ricevuta</option>
+            <option value="ricorso">Ricorso</option>
+            <option value="punti patente">Punti Patente</option>
+            <option value="integrazione">Integrazione</option>
+            <option value="cartella esattoriale">Cartella Esattoriale</option>
+            <option value="spedizione">Spedizione</option>
+            <option value="vari">Vari</option>
+            <option value="relata">Relata</option>
+            <option value="altro">Altro</option>
+          </select>
+          <span *ngIf="fileUploadForm.get('tipo')?.invalid && fileUploadForm.get('tipo')?.touched" style="color: red; font-size: 11px;">Campo obbligatorio</span>
+        </div>-->
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <select formControlName="tipo" 
+                  [style.border-color]="fileUploadForm.get('tipo')?.invalid && fileUploadForm.get('tipo')?.touched ? 'red' : ''"
+                  [disabled]="isLoadingTipoDoc">
+            <option value="">-- Seleziona --</option>
+            <option *ngFor="let tipoDoc of tipoDocList" [value]="tipoDoc.tipoDoc">
+              {{ tipoDoc.tipoDoc }}
+            </option>
+          </select>
+          <span *ngIf="fileUploadForm.get('tipo')?.invalid && fileUploadForm.get('tipo')?.touched" 
+                style="color: red; font-size: 11px;">
+            Campo obbligatorio
+          </span>
+          <small *ngIf="isLoadingTipoDoc" style="color: #666; font-size: 11px;">
+            Caricamento...
+          </small>
+        </div>
         <input type="text" formControlName="note" placeholder="Nota">
         <button type="button" (click)="triggerFileInput()">Browse...</button>
         <span>{{ selectedFiles.length > 0 ? selectedFiles.length + ' file selected' : 'No file selected' }}</span>
@@ -234,6 +279,8 @@
       <button type="button">Invia</button>
     </div>
     
+   
+    
     <!-- Final Buttons -->
     <div class="final-buttons">
       <button type="button" (click)="onCancel()">Elimina</button>
@@ -244,4 +291,5 @@
       <button type="button" (click)="backToList()">Annulla</button>
     </div>
   </form>
+  </div>
 </div>
