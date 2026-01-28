@@ -43,6 +43,9 @@ export class LoginComponent implements OnInit, OnDestroy {
     try {
       const res: any = await this.authService.login(username, password);
       console.log('Réponse complète:', res);
+
+      // Redirection
+      this.router.navigate(['/lista-contraventions']);
       
       // Vérifications de sécurité
       if (!res) {
@@ -82,8 +85,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       console.log('IsLoggedIn:', localStorage.getItem("isLoggedIn"));
       console.log('ID utilisateur:', localStorage.getItem("idUser"));
       
-      // Redirection
-      this.router.navigate(['/lista-contraventions']);
+      
       
     } catch (error: any) {
       console.error('Erreur lors de la connexion:', error);

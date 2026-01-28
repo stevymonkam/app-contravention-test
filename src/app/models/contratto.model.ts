@@ -43,50 +43,60 @@ export interface Scadenza {
 }
 
 export interface Contravention {
-  id?: number;
-  targa: string;
-  societaIntestataria: string;
-  nominativoGuidatore?: string;
-  mailGuidatore?: string;
-  statoVerbale: string;
-  dataVerbale: string;
-  numeroVerbale: string;
-  comuneVerbale?: string;
-  dataNotifica: string;
+  numVerbale: string; // Clé primaire
+  dataVerbale?: string;
+  dataNotifica?: string;
+  ggScadenza?: number;
+  targa?: string;
+  guidatore?: string;
+  emailGuidatore?: string;
+  societaIntestataria?: string;
   sedeNotifica?: string;
-  giorniScadenza: number;
+  comuneVerbale?: string;
   importo?: number;
   importoIntegrato?: number;
-  verbaleCorrelato?: string;
-  dataSpedizioneFinanziario?: string;
-  dataPagamentoVerbale?: string;
-  giorniRicorso?: number;
-  ricorso: boolean;
+  dataSpediziFinanz?: string;
+  dataPagamentoVerb?: string;
+  pagatoAziendaDipendente?: boolean;
+  ricorso?: boolean;
+  decurtaPunti?: boolean;
+  mmyyyyTrattenutaCedolino?: string;
+  mmyyyyTrattenutaDiffMultaCedolino?: string;
+  idStatoPratica?: number;
+  ggRicorso?: number;
+  numVerbaleCorrelato?: string;
   dataInvioRicorso?: string;
-  decurtazionePunti: boolean;
   dataInvioDecurtazione?: string;
   note?: string;
-  pagata: string; // 'Dipend.' ou 'Az.da'
-  trattamentoDifferenzaCedolino?: string;
-  trattenutaCedolino?: string;
-  dataCreazione?: string;
-  dataUltimaModifica?: string;
-  creatoDaId?: number;
-  creatoDaNome?: string;
-  allegati?: AllegatoContravention[];
+  exSocietaIntestataria?: string;
+  files?: FileContrevention[];
 }
 
-export interface AllegatoContravention {
-  id?: number;
-  documenti: string;
-  tipologia: string;
-  dimensione?: number;
-  descrizione?: string;
+export interface FileContrevention {
+  id?: number; // idCorrelato
+  numVerbale: string;
+  elemento?: string;
+  tipo?: string;
+  data?: string;
+  testo1?: string;
+  testo2?: string;
   note?: string;
-  numeroVerbale?: string;
-  dataCaricamento?: string;
-  caricatoDaId?: number;
-  caricatoDaNome?: string;
-  contraventionId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  file?: File; // Pour l'upload depuis le frontend
+}
+
+// Ancienne interface pour compatibilité (à supprimer progressivement)
+export interface AllegatoContravention {
+  id?: number; // idCorrelato
+  numVerbale: string;
+  elemento?: string;
+  tipo?: string;
+  data?: string;
+  testo1?: string;
+  testo2?: string;
+  note?: string;
+  createdAt?: string;
+  updatedAt?: string;
   file?: File;
 }

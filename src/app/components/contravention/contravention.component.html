@@ -1,418 +1,247 @@
-<div class="contravention-container">
-  <!-- Sidebar Navigation -->
-  <div class="sidebar">
-    <nav class="nav-menu">
-      <a href="#" class="nav-item">
-        <i class="material-icons">home</i>
-        Home
-      </a>
-      <a href="#" class="nav-item active">
-        <i class="material-icons">add</i>
-        Nuova
-      </a>
-      <a href="#" class="nav-item">
-        <i class="material-icons">print</i>
-        Stampa
-      </a>
-      <a href="#" class="nav-item">
-        <i class="material-icons">mail</i>
-        Mail
-        <i class="material-icons arrow">keyboard_arrow_right</i>
-      </a>
-      <a href="#" class="nav-item">
-        <i class="material-icons">help</i>
-        Aiuto
-      </a>
-    </nav>
-  </div>
-
-  <!-- Main Content -->
-  <div class="main-content">
-    <div class="form-container">
-      <h2 class="form-title">{{ isEditMode ? 'Modifica Contravention' : 'Nuova Contravention' }}</h2>
+<div class="container">
+  <form [formGroup]="contraventionForm" (ngSubmit)="onSubmit()">
+    <!-- Section supérieure - 6 colonnes -->
+    <div class="grid-6-cols">
+      <!-- Ligne 1 - Colonne 1 -->
+      <div class="form-group">
+        <label>Targa</label>
+        <input type="text" formControlName="targa" [readonly]="isFieldsLocked">
+      </div>
       
-      <form [formGroup]="contraventionForm" (ngSubmit)="onSubmit()" class="contravention-form">
-        
-        <!-- Row 1 -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="targa" class="required">Targa *</label>
-            <input 
-              id="targa"
-              type="text" 
-              formControlName="targa"
-              [class.error]="f['targa'].invalid && f['targa'].touched"
-              placeholder="Inserisci targa">
-          </div>
+      <!-- Ligne 1 - Colonne 2 -->
+      <div class="form-group">
+        <label>Società Intestataria</label>
+        <input type="text" formControlName="societaIntestataria">
+      </div>
+      
+      <!-- Ligne 1 - Colonne 3 -->
+      <div class="form-group">
+        <label>Nominativo Guidatore</label>
+        <input type="text" formControlName="guidatore">
+      </div>
+      
+      <!-- Ligne 1 - Colonne 4 -->
+      <div class="form-group">
+        <label>Mail Guidatore</label>
+        <input type="text" formControlName="emailGuidatore">
+      </div>
+      
+      <!-- Ligne 1 - Colonne 5 -->
+      <div class="form-group">
+        <label>Stato Verbale</label>
+        <select formControlName="idStatoPratica">
+          <option value="">-- Seleziona --</option>
+          <option value="1">da pagare</option>
+          <option value="2">pagato</option>
+          <option value="3">contestato</option>
+          <option value="4">sospeso in attesa ricevuta</option>
+          <option value="5">sospeso in attesa di decurtaz punti</option>
+          <option value="6">annullato</option>
+        </select>
+      </div>
 
-          <div class="form-field">
-            <label for="societaIntestataria" class="required">
-              Società Intestataria *
-              <i class="material-icons edit-icon">edit</i>
-            </label>
-            <select 
-              id="societaIntestataria"
-              formControlName="societaIntestataria"
-              [class.error]="f['societaIntestataria'].invalid && f['societaIntestataria'].touched">
-              <option *ngFor="let option of societaOptions" [value]="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-field">
-            <label for="nominativoGuidatore">Nominativo Guidatore</label>
-            <input 
-              id="nominativoGuidatore"
-              type="text" 
-              formControlName="nominativoGuidatore"
-              placeholder="Nome guidatore">
-          </div>
-
-          <div class="form-field">
-            <label for="mailGuidatore">Mail Guidatore</label>
-            <input 
-              id="mailGuidatore"
-              type="email" 
-              formControlName="mailGuidatore"
-              placeholder="Email guidatore">
-          </div>
-
-          <div class="form-field">
-            <label for="statoVerbale" class="required">Stato Verbale *</label>
-            <select 
-              id="statoVerbale"
-              formControlName="statoVerbale"
-              [class.error]="f['statoVerbale'].invalid && f['statoVerbale'].touched">
-              <option *ngFor="let option of statoVerbaleOptions" [value]="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
+     
+      <!-- Ligne 1 - Colonne 6 (vide) -->
+      <div class="form-group">
+        <label>Giorni alla scadenza</label>
+        <input type="number" formControlName="ggScadenza">
+      </div>
+      
+      <!-- Ligne 2 - Colonne 1 -->
+      <div class="form-group">
+        <label>Data Verbale</label>
+        <input type="date" formControlName="dataVerbale" [readonly]="isFieldsLocked">
+      </div>
+      
+      <!-- Ligne 2 - Colonne 2 -->
+      <div class="form-group">
+        <label>Numero Verbale</label>
+        <input type="text" formControlName="numVerbale" [readonly]="isEditMode">
+      </div>
+      
+      <!-- Ligne 2 - Colonne 3 -->
+      <div class="form-group">
+        <label>Comune del verbale</label>
+        <input type="text" formControlName="comuneVerbale">
+      </div>
+      
+      <!-- Ligne 2 - Colonne 4 -->
+      <div class="form-group">
+        <label>Data Notifica</label>
+        <input type="date" formControlName="dataNotifica">
+      </div>
+      
+      <!-- Ligne 2 - Colonne 5 -->
+      <div class="form-group">
+        <label>Sede Notifica</label>
+        <input type="text" formControlName="sedeNotifica">
+      </div>
+      
+      <!-- Ligne 2 - Colonne 6 -->
+      <div class="form-group">
+        <label>Pagata</label>
+        <div class="radio-group">
+          <label><input type="radio" formControlName="pagatoAziendaDipendente" [value]="false"> Dipend.</label>
+          <label><input type="radio" formControlName="pagatoAziendaDipendente" [value]="true"> Azda</label>
         </div>
-
-        <!-- Row 2 -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="dataVerbale" class="required">Data Verbale *</label>
-            <input 
-              id="dataVerbale"
-              type="date" 
-              formControlName="dataVerbale"
-              [class.error]="f['dataVerbale'].invalid && f['dataVerbale'].touched">
-          </div>
-
-          <div class="form-field">
-            <label for="numeroVerbale" class="required">Numero Verbale *</label>
-            <input 
-              id="numeroVerbale"
-              type="text" 
-              formControlName="numeroVerbale"
-              [class.error]="f['numeroVerbale'].invalid && f['numeroVerbale'].touched"
-              placeholder="Numero verbale">
-          </div>
-
-          <div class="form-field">
-            <label for="comuneVerbale">Comune del verbale</label>
-            <input 
-              id="comuneVerbale"
-              type="text" 
-              formControlName="comuneVerbale"
-              placeholder="Comune">
-          </div>
-
-          <div class="form-field">
-            <label for="dataNotifica" class="required">Data Notifica *</label>
-            <input 
-              id="dataNotifica"
-              type="date" 
-              formControlName="dataNotifica"
-              [class.error]="f['dataNotifica'].invalid && f['dataNotifica'].touched">
-          </div>
-
-          <div class="form-field">
-            <label for="sedeNotifica">Sede Notifica</label>
-            <input 
-              id="sedeNotifica"
-              type="text" 
-              formControlName="sedeNotifica"
-              placeholder="Sede notifica">
-          </div>
-
-          <div class="form-field">
-            <label for="giorniScadenza" class="required">Giorni alla scadenza *</label>
-            <input 
-              id="giorniScadenza"
-              type="number" 
-              formControlName="giorniScadenza"
-              [class.error]="f['giorniScadenza'].invalid && f['giorniScadenza'].touched"
-              placeholder="Giorni">
-          </div>
+      </div>
+      
+      <!-- Ligne 3 - Colonne 1 -->
+      <div class="form-group">
+        <label>Importo</label>
+        <input type="text" formControlName="importo">
+      </div>
+      
+      <!-- Ligne 3 - Colonne 2 -->
+      <div class="form-group">
+        <label>Importo Integrato</label>
+        <input type="text" formControlName="importoIntegrato">
+      </div>
+      
+      <!-- Ligne 3 - Colonne 3 -->
+      <div class="form-group">
+        <label>Verbale Correlato</label>
+        <input type="text" formControlName="numVerbaleCorrelato">
+      </div>
+      
+      <!-- Ligne 3 - Colonne 4 -->
+      <div class="form-group">
+        <label>Data spediz. al finanziario</label>
+        <input type="date" formControlName="dataSpediziFinanz">
+      </div>
+      
+      <!-- Ligne 3 - Colonne 5 -->
+      <div class="form-group">
+        <label>Data pagamento verbale</label>
+        <input type="date" formControlName="dataPagamentoVerb">
+      </div>
+      
+      <!-- Ligne 3 - Colonne 6 -->
+      <div class="form-group">
+        <label>Trattenuta su cedolino del</label>
+        <input type="text" formControlName="mmyyyyTrattenutaCedolino">
+      </div>
+      
+      <!-- Ligne 4 - Colonne 1 -->
+      <div class="form-group">
+        <label>Giorni Ricorso</label>
+        <input type="number" formControlName="ggRicorso">
+      </div>
+      
+      <!-- Ligne 4 - Colonne 2 -->
+      <div class="form-group">
+        <label>Ricorso</label>
+        <div class="radio-group">
+          <label><input type="radio" formControlName="ricorso" [value]="true"> Si</label>
+          <label><input type="radio" formControlName="ricorso" [value]="false"> No</label>
         </div>
-
-        <!-- Row 3 -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="importo">Importo</label>
-            <input 
-              id="importo"
-              type="number" 
-              formControlName="importo"
-              placeholder="€">
-          </div>
-
-          <div class="form-field">
-            <label for="importoIntegrato">Importo Integrato</label>
-            <input 
-              id="importoIntegrato"
-              type="number" 
-              formControlName="importoIntegrato"
-              placeholder="€">
-          </div>
-
-          <div class="form-field">
-            <label for="verbaleCorrelato">Verbale Correlato</label>
-            <input 
-              id="verbaleCorrelato"
-              type="text" 
-              formControlName="verbaleCorrelato"
-              placeholder="Verbale correlato">
-          </div>
-
-          <div class="form-field">
-            <label for="dataSpedizioneFinanziario">Data spediz. al finanziario</label>
-            <input 
-              id="dataSpedizioneFinanziario"
-              type="date" 
-              formControlName="dataSpedizioneFinanziario">
-          </div>
-
-          <div class="form-field">
-            <label for="dataPagamentoVerbale">Data pagamento verbale</label>
-            <input 
-              id="dataPagamentoVerbale"
-              type="date" 
-              formControlName="dataPagamentoVerbale">
-          </div>
+      </div>
+      
+      <!-- Ligne 4 - Colonne 3 -->
+      <div class="form-group">
+        <label>Data Invio Ricorso</label>
+        <input type="date" formControlName="dataInvioRicorso">
+      </div>
+      
+      <!-- Ligne 4 - Colonne 4 -->
+      <div class="form-group">
+        <label>Decurtaz. punti</label>
+        <div class="radio-group">
+          <label><input type="radio" formControlName="decurtaPunti" [value]="true"> Si</label>
+          <label><input type="radio" formControlName="decurtaPunti" [value]="false"> No</label>
         </div>
+      </div>
+      
+      <!-- Ligne 4 - Colonne 5 -->
+      <div class="form-group">
+        <label>Data Invio Decurtazione</label>
+        <input type="date" formControlName="dataInvioDecurtazione">
+      </div>
+      
+      <!-- Ligne 4 - Colonne 6 -->
+     <div class="form-group">
+      <label>Tratt.ta diffMulta su cedolino del</label>
+        <input type="text" formControlName="mmyyyyTrattenutaDiffMultaCedolino">
+      </div>
+      </div>
 
-        <!-- Row 4 -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="giorniRicorso">Giorni Ricorso</label>
-            <input 
-              id="giorniRicorso"
-              type="number" 
-              formControlName="giorniRicorso"
-              placeholder="Giorni">
-          </div>
+      
 
-          <div class="form-field radio-group">
-            <label>Ricorso</label>
-            <div class="radio-buttons">
-              <label class="radio-label">
-                <input type="radio" formControlName="ricorso" [value]="true">
-                <span>Si</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" formControlName="ricorso" [value]="false">
-                <span>No</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label for="dataInvioRicorso">Data Invio Ricorso</label>
-            <input 
-              id="dataInvioRicorso"
-              type="date" 
-              formControlName="dataInvioRicorso">
-          </div>
-
-          <div class="form-field radio-group">
-            <label>Decurat. punti</label>
-            <div class="radio-buttons">
-              <label class="radio-label">
-                <input type="radio" formControlName="decurtazionePunti" [value]="true">
-                <span>Si</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" formControlName="decurtazionePunti" [value]="false">
-                <span>No</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label for="dataInvioDecurtazione">Data Invio Decurtazione</label>
-            <input 
-              id="dataInvioDecurtazione"
-              type="date" 
-              formControlName="dataInvioDecurtazione">
-          </div>
-        </div>
-
-        <!-- Row 5 -->
-        <div class="form-row">
-          <div class="form-field full-width">
-            <label for="note">Note</label>
-            <textarea 
-              id="note"
-              formControlName="note"
-              rows="3"
-              placeholder="Inserisci note..."></textarea>
-          </div>
-        </div>
-
-        <!-- Payment Section -->
-        <div class="payment-section">
-          <div class="form-field radio-group">
-            <label class="required">Pagata *</label>
-            <div class="radio-buttons">
-              <label class="radio-label">
-                <input type="radio" formControlName="pagata" value="Dipend.">
-                <span>Dipend.</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" formControlName="pagata" value="Az.da">
-                <span>Az.da</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label for="trattamentoDifferenzaCedolino">Tratt.ta diff.za su cedol. del</label>
-            <input 
-              id="trattamentoDifferenzaCedolino"
-              type="text" 
-              formControlName="trattamentoDifferenzaCedolino"
-              placeholder="Data">
-          </div>
-
-          <div class="form-field">
-            <label for="trattenutaCedolino">Trattenuta su cedolino del</label>
-            <input 
-              id="trattenutaCedolino"
-              type="text" 
-              formControlName="trattenutaCedolino"
-              placeholder="Data">
-          </div>
-        </div>
-
-        <!-- File Upload Section -->
-        <div class="file-upload-section">
-          <h3>Inserisci</h3>
-          
-          <div class="upload-form" [formGroup]="fileUploadForm">
-            <div class="upload-row">
-              <div class="form-field">
-                <label for="tipoFile">Upload</label>
-                <select id="tipoFile" formControlName="tipo">
-                  <option *ngFor="let option of tipoFileOptions" [value]="option.value">
-                    {{ option.label }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-field">
-                <label for="noteFile">Note</label>
-                <input 
-                  id="noteFile"
-                  type="text" 
-                  formControlName="note"
-                  placeholder="Note per il file">
-              </div>
-
-              <div class="file-input-container">
-                <input 
-                  type="file" 
-                  id="fileInput" 
-                  multiple
-                  (change)="onFileSelected($event)"
-                  style="display: none;">
-                <button 
-                  type="button" 
-                  class="btn-choose-file"
-                  (click)="triggerFileInput()">
-                  Scegli file
-                </button>
-                <span class="file-info">
-                  {{ selectedFiles.length > 0 ? selectedFiles.length + ' file selezionati' : 'Nessun file selezionato' }}
-                </span>
-                <button 
-                  type="button" 
-                  class="btn-upload"
-                  (click)="uploadFiles()"
-                  [disabled]="selectedFiles.length === 0">
-                  <i class="material-icons">upload</i>
-                  Carica
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Files Table -->
-          <div class="files-table" *ngIf="uploadedFiles.length > 0">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tipologia</th>
-                  <th>Numero Verbale</th>
-                  <th>Note</th>
-                  <th>Documenti</th>
-                  <th>Azioni</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let file of uploadedFiles; let i = index">
-                  <td>{{ file.tipologia }}</td>
-                  <td>{{ file.numeroVerbale || '-' }}</td>
-                  <td>{{ file.note || '-' }}</td>
-                  <td>{{ file.documenti || '-' }}</td>
-                  <td>
-                    <button 
-                      type="button" 
-                      class="btn-remove"
-                      (click)="removeFile(i)">
-                      <i class="material-icons">delete</i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button 
-            type="button" 
-            class="btn-cancel"
-            (click)="onCancel()">
-            Cancella
-          </button>
-          <button 
-            *ngIf="isEditMode"
-            type="button" 
-            class="btn-back"
-            (click)="backToList()">
-            Torna alla lista
-          </button>
-          <button 
-            type="button" 
-            class="btn-print"
-            (click)="onPrint()">
-            Stampa
-          </button>
-          <button 
-            type="submit" 
-            class="btn-submit"
-            [disabled]="isLoading">
-            <span *ngIf="isLoading">{{ isEditMode ? 'Aggiornamento...' : 'Invio in corso...' }}</span>
-            <span *ngIf="!isLoading">{{ isEditMode ? 'Modifica' : 'Invia' }}</span>
-          </button>
-        </div>
-      </form>
+    
+    
+    <!-- Section Note -->
+    <div class="note-section">
+      <label>Note</label>
+      <textarea formControlName="note"></textarea>
     </div>
-  </div>
+    
+    <!-- Section Attachments -->
+    <div class="attachment-section" [formGroup]="fileUploadForm">
+      <div class="attachment-controls">
+        <select formControlName="tipo">
+          <option value="">-- Seleziona --</option>
+          <option value="multa">multa</option>
+          <option value="ricevuta">ricevuta</option>
+          <option value="altro">altro</option>
+        </select>
+        <input type="text" formControlName="note" placeholder="Nota">
+        <button type="button" (click)="triggerFileInput()">Browse...</button>
+        <span>{{ selectedFiles.length > 0 ? selectedFiles.length + ' file selected' : 'No file selected' }}</span>
+        <button type="button" class="btn-primary" (click)="uploadFiles()" [disabled]="selectedFiles.length === 0">Upload</button>
+        <a href="javascript:void(0)" class="link-button" (click)="uploadFiles()">🗑️ Carica</a>
+      </div>
+      
+      <input type="file" id="fileInput" multiple (change)="onFileSelected($event)" style="display: none;">
+      
+      <table>
+        <thead>
+          <tr>
+            <th class="checkbox-cell"></th>
+            <th>Tipologia</th>
+            <th>Numero Verbale</th>
+            <th>Note</th>
+            <th>Documenti</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let file of uploadedFiles; let i = index">
+            <td class="checkbox-cell">
+              <input 
+                type="checkbox" 
+                [checked]="selectedFileIndices.has(i)"
+                (change)="onFileCheckboxChange(i, $event)">
+            </td>
+            <td>{{ file.tipo || '-' }}</td>
+            <td>{{ file.numVerbale || contraventionNumVerbale || '-' }}</td>
+            <td>{{ file.note || '-' }}</td>
+            <td>{{file.testo1 || file.elemento || '-'}}</td>
+            <td><span class="view-icon">👁️</span> Guarda</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button 
+        type="button" 
+        (click)="removeSelectedFiles()" 
+        [disabled]="selectedFileIndices.size === 0">
+        Cancella
+      </button>
+      <button type="button" (click)="onPrint()">Stampa</button>
+      <button type="button">Invia</button>
+    </div>
+    
+    <!-- Final Buttons -->
+    <div class="final-buttons">
+      <button type="button" (click)="onCancel()">Elimina</button>
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <span *ngIf="isLoading">{{ isEditMode ? 'Aggiornamento...' : 'Salvataggio...' }}</span>
+        <span *ngIf="!isLoading">Salva</span>
+      </button>
+      <button type="button" (click)="backToList()">Annulla</button>
+    </div>
+  </form>
 </div>
