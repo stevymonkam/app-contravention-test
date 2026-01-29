@@ -605,6 +605,82 @@ export class ContraventionComponent implements OnInit {
     }
   }
 
+  // Visualiser un fichier
+  viewFile(fileContrevention: FileContrevention, index: number): void {
+    console.log('viewFile appelée pour:', fileContrevention);
+    
+    // Si le fichier a un ID, c'est un fichier du backend (mode édition)
+    if (fileContrevention.id && this.contraventionNumVerbale) {
+      console.log('Récupération du fichier depuis le backend, ID:', fileContrevention.id);
+      this.isLoading = true;
+      
+      this.contraventionService.getFile(this.contraventionNumVerbale, fileContrevention.id)
+        .subscribe({
+          next: (blob: Blob) => {
+            console.log('Fichier récupéré depuis le backend:', blob);
+            this.isLoading = false;
+            
+            // Créer une URL temporaire pour le blob
+            const fileURL = URL.createObjectURL(blob);
+            
+            // Obtenir le nom du fichier et son extension
+            const fileName = fileContrevention.testo1 || fileContrevention.elemento || 'fichier';
+            const fileExtension = this.getFileExtension(fileName);
+            
+            // Ouvrir le fichier dans un nouvel onglet
+            this.openFileInNewTab(fileURL, fileName, fileExtension);
+          },
+          error: (error: any) => {
+            console.error('Erreur lors de la récupération du fichier:', error);
+            this.isLoading = false;
+            this.showMessage('Erreur lors de l\'ouverture du fichier', 'error');
+          }
+        });
+    } 
+    // Si le fichier a un objet File, c'est un fichier local (mode création)
+    else if (fileContrevention.file) {
+      console.log('Ouverture du fichier local:', fileContrevention.file.name);
+      
+      // Créer une URL temporaire pour le fichier local
+      const fileURL = URL.createObjectURL(fileContrevention.file);
+      const fileName = fileContrevention.file.name;
+      const fileExtension = this.getFileExtension(fileName);
+      
+      // Ouvrir le fichier dans un nouvel onglet
+      this.openFileInNewTab(fileURL, fileName, fileExtension);
+    } 
+    else {
+      console.error('Fichier non disponible pour visualisation');
+      this.showMessage('Fichier non disponible', 'error');
+    }
+  }
+
+  // Ouvrir le fichier dans un nouvel onglet
+  private openFileInNewTab(fileURL: string, fileName: string, fileExtension: string, useGoogleViewer: boolean = false): void {
+    console.log('Ouverture du fichier:', fileName, 'Extension:', fileExtension, 'Google Viewer:', useGoogleViewer);
+    
+    // Formats Office qui nécessitent Google Docs Viewer
+    const officeExtensions = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+    
+    if (officeExtensions.includes(fileExtension.toLowerCase()) && useGoogleViewer) {
+      // Pour les fichiers Office, utiliser Google Docs Viewer
+      const googleViewerURL = `https://docs.google.com/viewer?url=${encodeURIComponent(fileURL)}&embedded=true`;
+      console.log('Ouverture avec Google Docs Viewer:', googleViewerURL);
+      window.open(googleViewerURL, '_blank');
+    } else {
+      // Pour les autres fichiers (PDF, images, etc.) ouvrir directement
+      window.open(fileURL, '_blank');
+    }
+    
+    console.log('Fichier ouvert dans un nouvel onglet:', fileName);
+  }
+
+  // Obtenir l'extension du fichier
+  private getFileExtension(fileName: string): string {
+    const parts = fileName.split('.');
+    return parts.length > 1 ? parts[parts.length - 1] : '';
+  }
+
   // Méthode pour uploader les fichiers en mode édition
   uploadFilesInEditMode(numVerbale: string, files: FileContrevention[], guidatore: string | undefined, targa: string | undefined): void {
     let uploadedCount = 0;

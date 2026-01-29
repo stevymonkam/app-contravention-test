@@ -261,7 +261,9 @@
             <td>{{ file.numVerbale || contraventionNumVerbale || '-' }}</td>
             <td>{{ file.note || '-' }}</td>
             <td>{{file.testo1 || file.elemento || '-'}}</td>
-            <td><span class="view-icon">👁️</span> Guarda</td>
+            <td style="cursor: pointer;" (click)="viewFile(file, i)">
+              <span class="view-icon">👁️</span> Guarda
+            </td>
           </tr>
         </tbody>
       </table>

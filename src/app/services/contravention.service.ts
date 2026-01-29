@@ -168,6 +168,19 @@ getAllCompagnie(): Observable<Compagnia[]> {
     return this.http.get<FileContrevention[]>(`${this.apiUrl}/${numVerbale}/files`, { headers: this.getHeaders() });
   }
 
+  // Récupérer un fichier spécifique pour le visualiser
+  getFile(numVerbale: string, fileId: number): Observable<Blob> {
+    const token = localStorage.getItem("token");
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.get(`${this.apiUrl}/${numVerbale}/files/${fileId}/download`, {
+      headers: headers,
+      responseType: 'blob'
+    });
+  }
+
   // Envoyer une contravention avec tous ses fichiers
 
   
